@@ -1,0 +1,8 @@
+# virtual environment
+.visa/
+
+# IDE
+.idea/
+
+
+desktop.ini

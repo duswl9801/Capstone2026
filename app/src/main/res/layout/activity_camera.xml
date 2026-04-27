@@ -1,0 +1,107 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/camera"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="#F8F8F8">
+
+    <LinearLayout
+        android:id="@+id/topBackBar"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="20dp"
+        android:layout_marginTop="24dp"
+        android:gravity="center_vertical"
+        android:orientation="horizontal"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent">
+
+        <ImageView
+            android:id="@+id/btnBack"
+            android:layout_width="24dp"
+            android:layout_height="24dp"
+            android:contentDescription="Back"
+            android:src="@drawable/ic_arrow_back"
+            app:tint="#333333" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="12dp"
+            android:text="BACK TO MENU"
+            android:fontFamily="@font/dmsans_extrabold"
+            android:textColor="#333333"
+            android:textSize="20sp"
+            android:letterSpacing="0.05"/>
+    </LinearLayout>
+
+    <androidx.cardview.widget.CardView
+        android:id="@+id/cameraContainer"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:layout_marginHorizontal="16dp"
+        android:layout_marginTop="16dp"
+        android:layout_marginBottom="100dp"
+        app:cardCornerRadius="24dp"
+        app:cardElevation="0dp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/topBackBar">
+
+        <FrameLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:background="#D1D1D1">
+
+            <androidx.camera.view.PreviewView
+                android:id="@+id/viewPreview"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent" />
+
+            <com.example.visa.HighlightOverlayView
+                android:id="@+id/highlightOverlay"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent" />
+
+            <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="bottom|center_horizontal"
+            android:layout_marginBottom="40dp"
+            android:text="Point and shoot to capture"
+            android:textColor="#FFFFFF"
+            android:textSize="30sp" />
+        </FrameLayout>
+    </androidx.cardview.widget.CardView>
+
+    <ImageView
+        android:id="@+id/btnShutter"
+        android:layout_width="80dp"
+        android:layout_height="80dp"
+        android:layout_marginBottom="60dp"
+        android:background="@drawable/bg_shutter_circle"
+        android:paddingStart="15dp"
+        android:paddingEnd="15dp"
+        android:paddingTop="3dp"
+        android:paddingBottom="10dp"
+        android:src="@drawable/ic_camera"
+        android:scaleType="centerInside"
+        android:translationY="-3dp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent" />
+
+    <ImageView
+        android:id="@+id/btnGallery"
+        android:layout_width="55dp"
+        android:layout_height="62dp"
+        android:layout_marginStart="56dp"
+        android:background="@drawable/bg_gallery"
+        android:padding="8dp"
+        android:src="@drawable/ic_gallery"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/cameraContainer" />
+</androidx.constraintlayout.widget.ConstraintLayout>

@@ -1,0 +1,200 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/main"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:layout_marginStart="10dp"
+    android:layout_marginEnd="10dp"
+    android:background="#F8F8F8"
+    tools:context=".MainActivity">
+
+    <!-- welcome message -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:paddingTop="16dp"
+        android:paddingBottom="12dp">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="GOOD MORNING"
+            android:textSize="15sp"
+            android:textColor="#999999"
+            android:letterSpacing="0.08" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="What would you&#10;like to do?"
+            android:textSize="30sp"
+            android:textStyle="bold"
+            android:textColor="#111111"
+            android:layout_marginTop="4dp" />
+    </LinearLayout>
+
+    <!-- Screen card (black) -->
+    <androidx.cardview.widget.CardView
+        android:id="@+id/cardScreen"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:layout_marginBottom="12dp"
+        app:cardCornerRadius="24dp"
+        app:cardElevation="0dp"
+        app:cardBackgroundColor="#111111">
+
+        <FrameLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent">
+
+            <!-- icon (top-right) -->
+            <ImageView
+                android:id="@+id/imgScreen"
+                android:layout_width="100dp"
+                android:layout_height="100dp"
+                android:layout_gravity="top|end"
+                android:layout_margin="22dp"
+                android:src="@drawable/ic_smartphone"
+                android:background="@drawable/bg_icon_dark"
+                android:padding="6dp"
+                android:scaleType="fitCenter"
+                app:tint="#F8F8F8"
+                android:contentDescription="screen icon" />
+
+            <!-- text (bottom) -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_gravity="bottom"
+                android:orientation="vertical"
+                android:padding="24dp">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="SCREEN"
+                    android:textSize="20sp"
+                    android:textColor="#7F7F7F"
+                    android:letterSpacing="0.1"
+                    android:layout_marginBottom="6dp" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Read what's&#10;on my screen"
+                    android:textSize="50sp"
+                    android:textStyle="bold"
+                    android:textColor="#FFFFFF" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Photos, documents, apps"
+                    android:textSize="18sp"
+                    android:textColor="#666666"
+                    android:layout_marginTop="6dp" />
+            </LinearLayout>
+        </FrameLayout>
+    </androidx.cardview.widget.CardView>
+
+    <!-- Camera card (white) -->
+    <androidx.cardview.widget.CardView
+        android:id="@+id/cardCamera"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:layout_marginBottom="12dp"
+        app:cardCornerRadius="24dp"
+        app:cardElevation="0dp"
+        app:cardBackgroundColor="#FFFFFF">
+
+        <FrameLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent">
+
+            <ImageView
+                android:id="@+id/imgCamera"
+                android:layout_width="100dp"
+                android:layout_height="100dp"
+                android:layout_gravity="top|end"
+                android:layout_margin="22dp"
+                android:src="@drawable/ic_camera"
+                android:background="@drawable/bg_icon_light"
+                android:padding="13dp"
+                android:contentDescription="camera icon" />
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_gravity="bottom"
+                android:orientation="vertical"
+                android:padding="24dp">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="CAMERA"
+                    android:textSize="20sp"
+                    android:textColor="#AAAAAA"
+                    android:letterSpacing="0.1"
+                    android:layout_marginBottom="6dp" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Look at the&#10;real world"
+                    android:textSize="50sp"
+                    android:textStyle="bold"
+                    android:textColor="#111111" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Point &amp; shoot anything"
+                    android:textSize="18sp"
+                    android:textColor="#999999"
+                    android:layout_marginTop="6dp" />
+            </LinearLayout>
+        </FrameLayout>
+    </androidx.cardview.widget.CardView>
+
+    <!-- Exit btn -->
+    <androidx.cardview.widget.CardView
+        android:id="@+id/cardExit"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="8dp"
+        app:cardCornerRadius="16dp"
+        app:cardElevation="0dp"
+        app:cardBackgroundColor="#EFEFEF">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center"
+            android:padding="18dp">
+
+            <ImageView
+                android:layout_width="18dp"
+                android:layout_height="18dp"
+                android:src="@drawable/ic_exit"
+                android:layout_marginEnd="8dp"
+                android:contentDescription="exit" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Exit app"
+                android:textSize="16sp"
+                android:textStyle="bold"
+                android:textColor="#5F5E5A" />
+        </LinearLayout>
+    </androidx.cardview.widget.CardView>
+
+</LinearLayout>

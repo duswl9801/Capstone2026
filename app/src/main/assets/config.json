@@ -1,0 +1,13 @@
+{
+	"App": {
+		"ocr": {
+			"name": "EasyOCR",
+			"minConfidence": 0.8,
+			"mergeDistanceThreshold_y": 20,
+			"mergeDistanceThreshold_x": 4
+		},
+		"model": {
+			"modelName" : "gemme3: 4b"
+		}
+	}
+}

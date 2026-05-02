@@ -92,6 +92,7 @@
                     android:textColor="#FFFFFF" />
 
                 <TextView
+                    android:id="@+id/txtScreen"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="Photos, documents, apps"

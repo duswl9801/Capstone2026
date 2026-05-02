@@ -1,3 +1,7 @@
 <resources>
     <string name="app_name">VisA</string>
+    <string name="screen_assistant_service_name">VisA Screen Assistant</string>
+    <string name="accessibility_service_description">
+        Reads visible screen text and buttons to help guide you on other app screens.
+    </string>
 </resources>

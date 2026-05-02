@@ -2,22 +2,19 @@ package com.example.visa
 
 import android.content.Intent
 import android.os.Bundle
+import android.widget.TextView
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
-import kotlinx.coroutines.launch
-
-
-import android.util.Log
-import android.graphics.Bitmap
 import androidx.cardview.widget.CardView
-import androidx.lifecycle.lifecycleScope
-import com.example.visa.analyzer.VisualAnalyzer
+
+import com.example.visa.util.DialogUtils
 
 class MainActivity : AppCompatActivity() {
 
-    private val TAG = "VisualAnalyzerTest"
+    private lateinit var cardScreen: CardView
+    private lateinit var txtScreen: TextView
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -32,7 +29,8 @@ class MainActivity : AppCompatActivity() {
 
         AppContainer.init(this)
 
-        val cardScreen = findViewById<CardView>(R.id.cardScreen)
+        cardScreen = findViewById<CardView>(R.id.cardScreen)
+        txtScreen = findViewById<TextView>(R.id.txtScreen)
         val cardCamera = findViewById<CardView>(R.id.cardCamera)
         val cardExit = findViewById<CardView>(R.id.cardExit)
 
@@ -41,26 +39,33 @@ class MainActivity : AppCompatActivity() {
             startActivity(intent)
         }
 
-
-        ////////////////////////////////////////////////
-        val analyzer = VisualAnalyzer(
-            ocrName = "EasyOCR",
-            confidenceThreshold = 0.5f,
-            mergeDistanceThreshhold_x = 20,
-            mergeDistanceThreshhold_y = 20,
-            modelName = "Moondream"
-        )
-
-        val dummyBitmap = Bitmap.createBitmap(500, 800, Bitmap.Config.ARGB_8888)
-
-        lifecycleScope.launch {
-            val result = analyzer.detectText(dummyBitmap)
-
-            result.detectedTexts.forEach {
-                Log.d(TAG, "text=${it.text}, confidence=${it.confidence}, box=${it.box}")
+        cardScreen.setOnClickListener {
+            DialogUtils.handleScreenAssistantClick(this){
+                // execute the function immediately when the service is already enabled
+                moveTaskToBack(true)
             }
         }
-        ///////////////////////////////////////////////
+
+        cardExit.setOnClickListener {
+            finishAffinity()
+        }
 
     }
+
+    override fun onResume() {
+        super.onResume()
+        updateScreenCardState()
+    }
+
+    private fun updateScreenCardState() {
+        val isEnabled = DialogUtils.isAccessibilityServiceEnabled(this)
+        if (isEnabled) {
+            cardScreen.alpha = 1.0f
+            txtScreen.text = "Photos, documents, apps"
+        } else {
+            cardScreen.alpha = 0.45f
+            txtScreen.text = "Enable Screen Assistant first"
+        }
+    }
+
 }

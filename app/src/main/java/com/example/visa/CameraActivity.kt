@@ -24,8 +24,10 @@ import androidx.lifecycle.lifecycleScope
 import kotlinx.coroutines.launch
 import android.graphics.Bitmap
 import android.graphics.Canvas
+import org.json.JSONArray
 
 import com.example.visa.analyzer.VisualAnalyzer
+import com.example.visa.overlay.HighlightOverlayView
 import com.example.visa.util.BoxMapper
 import com.example.visa.utils.BitmapUtils
 
@@ -75,6 +77,14 @@ class CameraActivity : AppCompatActivity() {
         }
 
         requestCameraPermission()
+    }
+
+    override fun onResume() {
+        super.onResume()
+
+        if (::highlightOverlayView.isInitialized) {
+            highlightOverlayView.setBoxes(emptyList())
+        }
     }
 
     private fun requestCameraPermission() {
@@ -145,13 +155,7 @@ class CameraActivity : AppCompatActivity() {
                         val canvas = Canvas(highlightedBitmap)
                         canvas.drawBitmap(bitmap, 0f, 0f, null) // original image
                         highlightOverlayView.setBoxes(boxes) // add ocr boxes
-                        highlightOverlayView.layout(
-                            0,
-                            0,
-                            bitmap.width,
-                            bitmap.height
-                        )
-
+                        highlightOverlayView.layout(0,0,bitmap.width,bitmap.height)
                         // draw boxes on the canvas
                         highlightOverlayView.drawOverlay(canvas)
 
@@ -161,11 +165,18 @@ class CameraActivity : AppCompatActivity() {
                             bitmap = highlightedBitmap
                         )
 
+                        // Pack OCR text strings into a JSON array to pass to ShutterActivity
+                        val ocrJson = JSONArray().apply {
+                            result.detectedTexts.forEach { put(it.text) }
+                        }.toString()
+
                         // convey to shutter activity
                         val intent = Intent(this@CameraActivity, ShutterActivity::class.java).apply {
                             putExtra("imagePath", highlightedImagePath)
+                            putExtra("ocrText", ocrJson) // ← new
                         }
 
+                        highlightOverlayView.setBoxes(emptyList()) // erase highlights
                         startActivity(intent)
                     }
                 }

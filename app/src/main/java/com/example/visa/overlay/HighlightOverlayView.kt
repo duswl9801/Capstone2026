@@ -1,7 +1,10 @@
-package com.example.visa
+package com.example.visa.overlay
 
 import android.content.Context
-import android.graphics.*
+import android.graphics.Canvas
+import android.graphics.Color
+import android.graphics.Paint
+import android.graphics.RectF
 import android.util.AttributeSet
 import android.view.View
 import com.example.visa.dataclasses.BoundingBox

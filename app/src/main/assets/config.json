@@ -8,6 +8,21 @@
 		},
 		"model": {
 			"modelName" : "gemme3: 4b"
+		},
+		"allowed_actions": [
+		"ACTION_CLICK",
+		"ACTION_SCROLL_UP",
+		"ACTION_SCROLL_DOWN",
+		"ACTION_SCROLL_LEFT",
+		"ACTION_SCROLL_RIGHT",
+		"ACTION_SET_TEXT",
+		"GLOBAL_ACTION_BACK",
+		"ACTION_FOCUS"
+		],
+		"output_format": {
+			"action": "",
+			"target_label": "",
+			"input_text": ""
 		}
 	}
 }

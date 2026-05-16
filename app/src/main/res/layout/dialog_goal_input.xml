@@ -1,0 +1,83 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/dialogRoot"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:padding="10dp"
+    android:background="@android:color/transparent">
+
+    <LinearLayout
+        android:id="@+id/dialogContainer"
+        android:background="@drawable/bg_dialog"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:paddingStart="14dp"
+        android:paddingTop="14dp"
+        android:paddingEnd="14dp"
+        android:paddingBottom="24dp">
+
+        <TextView
+            android:id="@+id/dialogTitle"
+            app:fontFamily="@font/lexend_semibold"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="What do you want to do?"
+            android:textColor="@color/visa_brown"
+            android:textSize="26sp" />
+
+        <TextView
+            android:id="@+id/dialogMessage"
+            app:fontFamily="@font/lexend_regular"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="14dp"
+            android:text="Type your goal for this screen. I will look at the screen and suggest the next action."
+            android:textColor="@color/visa_brown"
+            android:textSize="18sp"
+            android:lineSpacingExtra="4dp" />
+
+        <EditText
+            android:id="@+id/editGoal"
+            app:fontFamily="@font/lexend_regular"
+            android:layout_width="match_parent"
+            android:layout_height="120dp"
+            android:layout_marginTop="18dp"
+            android:background="@drawable/bg_goal_input"
+            android:gravity="top|start"
+            android:hint="Example: I want to refill my prescription"
+            android:textColorHint="#B8B0A6"
+            android:inputType="textMultiLine|textCapSentences"
+            android:maxLines="4"
+            android:minLines="3"
+            android:padding="14dp"
+            android:textColor="@color/visa_brown"
+            android:textSize="18sp" />
+
+        <Button
+            android:id="@+id/btnSubmitGoal"
+            app:backgroundTint="@null"
+            android:background="@drawable/bg_dialog_button"
+            app:fontFamily="@font/lexend_semibold"
+            android:layout_width="match_parent"
+            android:layout_height="50dp"
+            android:layout_marginTop="22dp"
+            android:text="Continue"
+            android:textSize="20sp"
+            android:textAllCaps="false" />
+
+        <Button
+            android:id="@+id/btnCancelGoal"
+            app:backgroundTint="@null"
+            android:background="@drawable/bg_dialog_button"
+            app:fontFamily="@font/lexend_semibold"
+            android:layout_width="match_parent"
+            android:layout_height="50dp"
+            android:layout_marginTop="12dp"
+            android:text="Cancel"
+            android:textSize="20sp"
+            android:textAllCaps="false" />
+
+    </LinearLayout>
+</ScrollView>

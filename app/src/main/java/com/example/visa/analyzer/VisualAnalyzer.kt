@@ -1,16 +1,32 @@
 package com.example.visa.analyzer
 
 import com.example.visa.dataclasses.*
+import com.example.visa.util.JsonUtils
 
 import android.graphics.Bitmap
+import com.example.visa.BuildConfig
 import com.google.mlkit.vision.common.InputImage
 import com.google.mlkit.vision.text.TextRecognition
 import com.google.mlkit.vision.text.latin.TextRecognizerOptions
 import kotlin.math.abs
 import com.google.mlkit.vision.text.Text
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.tasks.await
+import kotlinx.coroutines.withContext
+
+import okhttp3.MediaType.Companion.toMediaType
+import okhttp3.OkHttpClient
+import okhttp3.Request
+import okhttp3.RequestBody.Companion.toRequestBody
+import org.json.JSONArray
+import org.json.JSONObject
+import java.util.concurrent.TimeUnit
 
 class VisualAnalyzer(
+    // server
+    private val baseURL: String = BuildConfig.ACTION_SERVER_URL,
+    private val apiToken: String = BuildConfig.ACTION_SERVER_TOKEN,
+
     // OCR
     private val ocrName: String,
     private val confidenceThreshold: Float,
@@ -18,8 +34,15 @@ class VisualAnalyzer(
     private val mergeDistanceThreshold_y: Int,
 
     // VLM model
-    private val modelName: String,
+    private val modelName: String
 ){
+    // HTTP client for the desktop server
+    private val client = OkHttpClient.Builder()
+        .connectTimeout(30, TimeUnit.SECONDS)
+        .readTimeout(120, TimeUnit.SECONDS)
+        .writeTimeout(30, TimeUnit.SECONDS)
+        .build()
+
     suspend fun detectText(image: Bitmap): OCRResult {
         // TODO: connect to python OCR server
         // Use ML Kit OCR for Now. Don't know later
@@ -81,6 +104,31 @@ class VisualAnalyzer(
             }
         }
         return OCRResult(mergedTexts)
+    }
+
+    suspend fun getNextAction(screenContext: ScreenContext): String = withContext(Dispatchers.IO) {
+
+        val json = JsonUtils.screenContextToJson(screenContext)
+
+        val body = json.toString()
+            .toRequestBody("application/json".toMediaType())
+
+        val request = Request.Builder()
+            .url("$baseURL/next-action")
+            .addHeader("Authorization", "Bearer $apiToken")
+            .post(body)
+            .build()
+
+        client.newCall(request).execute().use { response ->
+            val responseBody = response.body?.string() ?: ""
+
+            if (!response.isSuccessful) {
+                throw Exception("Server request failed: ${response.code}, $responseBody")
+            }
+
+            val responseJson = JSONObject(responseBody)
+            responseJson.getString("response")
+        }
     }
 
 }

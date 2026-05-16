@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<com.example.visa.overlay.AssistantBubbleView
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/assistantBubble"
+    android:background="@drawable/bg_visa_bubble"
+    android:layout_width="100dp"
+    android:layout_height="100dp"
+    android:clickable="true"
+    android:focusable="true"
+    android:padding="12dp">
+
+    <ImageView
+        android:id="@+id/visaIcon"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:src="@drawable/ic_visa"
+        android:scaleType="fitCenter"
+        android:contentDescription="Assistant bubble" />
+
+</com.example.visa.overlay.AssistantBubbleView>

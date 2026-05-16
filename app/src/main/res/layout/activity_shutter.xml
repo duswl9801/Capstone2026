@@ -66,6 +66,7 @@
         </FrameLayout>
     </androidx.cardview.widget.CardView>
 
+    <!-- Bottom bar: gallery on left, speaker on right -->
     <ImageView
         android:id="@+id/btnGallery"
         android:layout_width="55dp"
@@ -76,4 +77,17 @@
         android:src="@drawable/ic_gallery"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@id/cameraContainer" />
+
+    <ImageView
+        android:id="@+id/btnSpeak"
+        android:layout_width="55dp"
+        android:layout_height="62dp"
+        android:layout_marginEnd="56dp"
+        android:background="@drawable/bg_gallery"
+        android:padding="8dp"
+        android:src="@drawable/ic_speaker"
+        android:contentDescription="Read text aloud"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/cameraContainer" />
+
 </androidx.constraintlayout.widget.ConstraintLayout>

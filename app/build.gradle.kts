@@ -1,5 +1,16 @@
+import java.util.Properties
+
 plugins {
     alias(libs.plugins.android.application)
+}
+
+val localProperties = Properties()
+val localPropertiesFile = rootProject.file("local.properties")
+
+if (localPropertiesFile.exists()) {
+    localPropertiesFile.inputStream().use {
+        localProperties.load(it)
+    }
 }
 
 android {
@@ -10,6 +21,10 @@ android {
         }
     }
 
+    buildFeatures {
+        buildConfig = true
+    }
+
     defaultConfig {
         applicationId = "com.example.visa"
         minSdk = 26
@@ -18,6 +33,18 @@ android {
         versionName = "1.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+
+        buildConfigField(
+            "String",
+            "ACTION_SERVER_URL",
+            "\"${localProperties.getProperty("ACTION_SERVER_URL", "")}\""
+        )
+
+        buildConfigField(
+            "String",
+            "ACTION_SERVER_TOKEN",
+            "\"${localProperties.getProperty("ACTION_SERVER_TOKEN", "")}\""
+        )
     }
 
     buildTypes {
@@ -50,10 +77,12 @@ dependencies {
     implementation("com.google.mlkit:text-recognition-chinese:16.0.1")
     // To recognize Japanese script
     implementation("com.google.mlkit:text-recognition-japanese:16.0.1")
-// To recognize Korean script
+    // To recognize Korean script
     implementation("com.google.mlkit:text-recognition-korean:16.0.1")
 
     implementation("androidx.exifinterface:exifinterface:1.3.7")
+
+    implementation("com.squareup.okhttp3:okhttp:4.12.0")
 
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.appcompat)

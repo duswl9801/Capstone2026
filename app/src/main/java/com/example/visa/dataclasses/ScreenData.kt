@@ -9,13 +9,13 @@ enum class UIElementType {
 
 data class UIElement(
     val id: String? = null,
-    val elementType: UIElementType, // 0: textfield | 1: button | 2: icon 3: menu
-    val uiText: String? = null,
-    val location: BoundingBox,
-    val isClickable: Boolean,
-    val isCheckable: Boolean,
-    val isWritable: Boolean,
-    var userText: String? = null
+    val text: String?,
+    val contentDescription: String?,
+    val className: String?,
+    val packageName: String?,
+    val clickable: Boolean,
+    val editable: Boolean,
+    val bounds: String
 )
 
 data class ScreenContext(

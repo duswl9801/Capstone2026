@@ -5,12 +5,12 @@ import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
 import android.graphics.Color
-import android.graphics.drawable.ColorDrawable
 import android.provider.Settings
 import com.example.visa.R
 import android.view.LayoutInflater
 import android.view.WindowManager
 import android.widget.Button
+import androidx.core.graphics.drawable.toDrawable
 import com.example.visa.accessibility.ScreenAccessibilityService
 
 object DialogUtils {
@@ -56,7 +56,7 @@ object DialogUtils {
 
         dialog.show()
 
-        dialog.window?.setBackgroundDrawable(ColorDrawable(Color.TRANSPARENT))
+        dialog.window?.setBackgroundDrawable(Color.TRANSPARENT.toDrawable())
         dialog.window?.setLayout(
             (context.resources.displayMetrics.widthPixels * 0.90).toInt(),
             WindowManager.LayoutParams.WRAP_CONTENT

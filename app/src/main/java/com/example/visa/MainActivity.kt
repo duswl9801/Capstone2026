@@ -3,18 +3,23 @@ package com.example.visa
 import android.content.Intent
 import android.os.Bundle
 import android.widget.TextView
-import android.widget.Toast
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.cardview.widget.CardView
-import com.example.visa.accessibility.ScreenAccessibilityService
+import com.example.visa.overlay.ScreenOverlayService
+import android.provider.Settings
+import android.net.Uri
+import com.example.visa.dataclasses.AssistMode
+import com.example.visa.dataclasses.Assistant
 
 import com.example.visa.util.DialogUtils
+import com.example.visa.util.Utils
 
 class MainActivity : AppCompatActivity() {
 
+    private lateinit var assistant: Assistant
     private lateinit var cardScreen: CardView
     private lateinit var txtScreen: TextView
 
@@ -29,59 +34,31 @@ class MainActivity : AppCompatActivity() {
             insets
         }
 
+        // init AppContainer so that I can use over activities
         AppContainer.init(this)
+
+        assistant = AppContainer.assistant
 
         cardScreen = findViewById<CardView>(R.id.cardScreen)
         txtScreen = findViewById<TextView>(R.id.txtScreen)
         val cardCamera = findViewById<CardView>(R.id.cardCamera)
         val cardExit = findViewById<CardView>(R.id.cardExit)
 
-        val tempText = findViewById<TextView>(R.id.temptextWould)
-
         cardCamera.setOnClickListener {
+            assistant.start(AssistMode.CAMERA)
+
             val intent = Intent(this, CameraActivity::class.java)
             startActivity(intent)
         }
 
         cardScreen.setOnClickListener {
-            val intent = Intent(this, ScreenActivity::class.java)
-            startActivity(intent)
-
+            handlePermission()
         }
 
         cardExit.setOnClickListener {
-            //finishAffinity()
-            Toast.makeText(this, "Exit button clicked!", Toast.LENGTH_SHORT).show()
+            stopService(Intent(this, ScreenOverlayService::class.java))
+            finishAffinity()
         }
-
-        tempText.setOnClickListener {
-
-            if (!DialogUtils.isAccessibilityServiceEnabled(this)) {
-                Toast.makeText(this, "Please enable Screen Assistant first", Toast.LENGTH_SHORT).show()
-                DialogUtils.showAccessibilityGuideDialog(this)
-                return@setOnClickListener
-            }
-
-            val service = ScreenAccessibilityService.instance
-
-            if (service == null) {
-                Toast.makeText(this, "Accessibility service is not connected yet", Toast.LENGTH_SHORT).show()
-                android.util.Log.d("ActionTest", "Service instance is null")
-                return@setOnClickListener
-            }
-
-            // Temporary test: click Exit app
-            val success = service.tempclickText("Exit app")
-
-            android.util.Log.d("ActionTest", "Auto click Exit result: $success")
-
-            Toast.makeText(
-                this,
-                if (success) "Clicked Exit" else "Exit button not found",
-                Toast.LENGTH_SHORT
-            ).show()
-        }
-
     }
 
     override fun onResume() {
@@ -89,9 +66,50 @@ class MainActivity : AppCompatActivity() {
         updateScreenCardState()
     }
 
+    private fun handlePermission() {
+        val isAccessibilityEnabled = Utils.isAccessibilityServiceEnabled(this)
+
+        // to access to UI elements and run some actions
+        if (!isAccessibilityEnabled) {
+            DialogUtils.showAccessibilityGuideDialog(this)
+            return
+        }
+
+        // to draw on the other screens
+        if (!Settings.canDrawOverlays(this)) {
+            val intent = Intent(
+                Settings.ACTION_MANAGE_OVERLAY_PERMISSION,
+                Uri.parse("package:$packageName")
+            )
+            startActivity(intent)
+            return
+        }
+
+        startScreenAssistant()
+
+    }
+
+    private fun startScreenAssistant() {
+        val prefs = getSharedPreferences("app_prefs", MODE_PRIVATE) // call SharedPreferences file named "app_prefs", make a new one if no exist
+        val seenGuide = prefs.getBoolean("seenGuide", false) // call "firstUsage" value from prefs, set false if no exist
+
+        assistant.start(AssistMode.SCREEN)
+
+        if (!seenGuide) {
+            // TODO: assistant speak guidance?
+            startActivity(Intent(this, GuideActivity::class.java))
+            return
+        } else {
+            startService(Intent(this, ScreenOverlayService::class.java))
+            // send this app to the background so the user can open another app
+            moveTaskToBack(true)
+        }
+
+    }
+
     private fun updateScreenCardState() {
-        val isEnabled = DialogUtils.isAccessibilityServiceEnabled(this)
-        if (isEnabled) {
+        val isAccessibilityEnabled = Utils.isAccessibilityServiceEnabled(this)
+        if (isAccessibilityEnabled) {
             cardScreen.alpha = 1.0f
             txtScreen.text = "Photos, documents, apps"
         } else {

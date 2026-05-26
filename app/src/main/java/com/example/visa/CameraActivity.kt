@@ -22,14 +22,20 @@ import androidx.camera.core.ImageCaptureException
 import java.io.File
 import androidx.lifecycle.lifecycleScope
 import kotlinx.coroutines.launch
-import android.graphics.Bitmap
 import android.graphics.Canvas
-import org.json.JSONArray
+import android.view.View
+import com.example.visa.utils.BitmapUtils
+import androidx.core.graphics.createBitmap
+import android.os.Build
+import android.os.VibrationEffect
+import android.os.Vibrator
+import android.os.VibratorManager
+import android.widget.TextView
 
 import com.example.visa.analyzer.VisualAnalyzer
 import com.example.visa.overlay.HighlightOverlayView
-import com.example.visa.util.BoxMapper
-import com.example.visa.utils.BitmapUtils
+import com.example.visa.util.JsonUtils
+import com.example.visa.util.Utils
 
 class CameraActivity : AppCompatActivity() {
 
@@ -37,20 +43,21 @@ class CameraActivity : AppCompatActivity() {
 
     private lateinit var viewPreview: PreviewView
     private lateinit var highlightOverlayView: HighlightOverlayView
-    private var imageCapture: ImageCapture? = null
+    private lateinit var btnShutter: ImageView
+    private lateinit var loadingOverlay: View
+    private lateinit var loadingText: TextView
+
+    private var capturedImage: ImageCapture? = null
 
     private val cameraPermissionLauncher =
         registerForActivityResult(ActivityResultContracts.RequestPermission()) { isGranted ->
-            if (isGranted) {
-                startCamera()
-            }
+            if (isGranted) { startCamera() }
         }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
 
-        analyzer = AppContainer.visualAnalyzer
         setContentView(R.layout.activity_camera)
         ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.camera)) { v, insets ->
             val systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
@@ -58,17 +65,29 @@ class CameraActivity : AppCompatActivity() {
             insets
         }
 
+        analyzer = AppContainer.visualAnalyzer
+
         viewPreview = findViewById(R.id.viewPreview)
         highlightOverlayView = findViewById(R.id.highlightOverlay)
 
-        val btnShutter = findViewById<ImageView>(R.id.btnShutter)
+        btnShutter = findViewById<ImageView>(R.id.btnShutter)
         val btnGallery = findViewById<ImageView>(R.id.btnGallery)
+        btnGallery.visibility = View.GONE // make it visible when the function implemented
 
-        findViewById<android.view.View>(R.id.topBackBar).setOnClickListener {
+        // loading
+        loadingOverlay = findViewById(R.id.loadingOverlayContainer)
+        loadingText = loadingOverlay.findViewById(R.id.loadingText)
+
+        findViewById<View>(R.id.topBackBar).setOnClickListener {
             finish()
         }
 
         btnShutter.setOnClickListener {
+            btnShutter.isEnabled = false
+
+            vibrateOnCapture()
+            showCameraFlash()
+
             captureImage()
         }
 
@@ -79,80 +98,48 @@ class CameraActivity : AppCompatActivity() {
         requestCameraPermission()
     }
 
-    override fun onResume() {
-        super.onResume()
-
-        if (::highlightOverlayView.isInitialized) {
-            highlightOverlayView.setBoxes(emptyList())
-        }
-    }
-
     private fun requestCameraPermission() {
         val permission = Manifest.permission.CAMERA
 
-        if (ContextCompat.checkSelfPermission(this, permission) == PackageManager.PERMISSION_GRANTED) {
-            startCamera()
-        } else {
-            cameraPermissionLauncher.launch(permission)
-        }
+        if (ContextCompat.checkSelfPermission(this, permission) == PackageManager.PERMISSION_GRANTED) { startCamera() }
+        else { cameraPermissionLauncher.launch(permission) }
     }
-
-    private fun startCamera() {
-        val cameraProviderFuture = ProcessCameraProvider.getInstance(this)
-
-        cameraProviderFuture.addListener({
-            val cameraProvider = cameraProviderFuture.get()
-
-            val preview = Preview.Builder().build().also {
-                it.setSurfaceProvider(viewPreview.surfaceProvider)
-            }
-
-            imageCapture = ImageCapture.Builder().build()
-
-            val cameraSelector = CameraSelector.DEFAULT_BACK_CAMERA
-
-            cameraProvider.unbindAll()
-            cameraProvider.bindToLifecycle(
-                this,
-                cameraSelector,
-                preview,
-                imageCapture
-            )
-        }, ContextCompat.getMainExecutor(this))
-    }
-
 
     private fun captureImage() {
-        val imageCapture = imageCapture ?: return
+        val capturedImage = capturedImage ?: return
 
-        val photoFile = File( // save cache
-            cacheDir,
-            "capture_${System.currentTimeMillis()}.jpg"
-        )
+        // save cache
+        val photoFile = File(cacheDir, "capture_${System.currentTimeMillis()}.jpg")
 
-        val outputOptions = ImageCapture.OutputFileOptions.Builder(photoFile).build()
+        val outputOptions = ImageCapture.OutputFileOptions.Builder(photoFile).build() // info where to save
 
-        imageCapture.takePicture(
+        // take a photo and process
+        capturedImage.takePicture( // take a photo with CameraX
             outputOptions,
-            ContextCompat.getMainExecutor(this),
-            object : ImageCapture.OnImageSavedCallback {
+            ContextCompat.getMainExecutor(this), // run callback on the main thread
+            object : ImageCapture.OnImageSavedCallback { // callback object running after saving image
+
                 override fun onImageSaved(outputFileResults: ImageCapture.OutputFileResults) {
+                    btnShutter.isEnabled = true
+
+                    Utils.showLoading(loadingOverlay, loadingText, "Detecting texts...")
+
                     val rawBitmap  = BitmapFactory.decodeFile(photoFile.absolutePath)
-                    val bitmap = BitmapUtils.rotateBitmapIfNeeded(rawBitmap, photoFile.absolutePath)
+                    val bitmap = BitmapUtils.rotateBitmapIfNeeded(rawBitmap, photoFile.absolutePath) // bitmap rotation calibrate if needed
 
                     // run OCR with coroutine function
                     lifecycleScope.launch {
                         val result = analyzer.detectText(bitmap)
+
+                        // pack OCR text strings into a JSON array to pass to ShutterActivity
+                        val ocrJson = JsonUtils.ocrResultToJson(result).toString()
+                        // map: create a new list by transforming each item in the original list into another value
                         val boxes = result.detectedTexts.map { it.box }
 
                         // create bitmap same size as captured bitmap
-                        val highlightedBitmap = Bitmap.createBitmap(
-                            bitmap.width,
-                            bitmap.height,
-                            Bitmap.Config.ARGB_8888
-                        )
-
+                        val highlightedBitmap = createBitmap(bitmap.width, bitmap.height)
                         val canvas = Canvas(highlightedBitmap)
+
                         canvas.drawBitmap(bitmap, 0f, 0f, null) // original image
                         highlightOverlayView.setBoxes(boxes) // add ocr boxes
                         highlightOverlayView.layout(0,0,bitmap.width,bitmap.height)
@@ -165,27 +152,97 @@ class CameraActivity : AppCompatActivity() {
                             bitmap = highlightedBitmap
                         )
 
-                        // Pack OCR text strings into a JSON array to pass to ShutterActivity
-                        val ocrJson = JSONArray().apply {
-                            result.detectedTexts.forEach { put(it.text) }
-                        }.toString()
-
                         // convey to shutter activity
                         val intent = Intent(this@CameraActivity, ShutterActivity::class.java).apply {
+                            putExtra("ocrText", ocrJson)
                             putExtra("imagePath", highlightedImagePath)
-                            putExtra("ocrText", ocrJson) // ← new
                         }
 
                         highlightOverlayView.setBoxes(emptyList()) // erase highlights
+                        Utils.hideLoading(loadingOverlay)
+
                         startActivity(intent)
                     }
                 }
+
                 override fun onError(exception: ImageCaptureException) {
+                    btnShutter.isEnabled = true
                     Log.e("CameraActivity", "Image capture failed", exception)
                 }
             }
         )
 
+    }
+
+    // show camera preview
+    private fun startCamera() {
+        val cameraProviderFuture = ProcessCameraProvider.getInstance(this)
+
+        cameraProviderFuture.addListener({
+            val cameraProvider = cameraProviderFuture.get()
+
+            val preview = Preview.Builder().build().also {
+                it.setSurfaceProvider(viewPreview.surfaceProvider)
+            }
+
+            capturedImage = ImageCapture.Builder().build()
+
+            val cameraSelector = CameraSelector.DEFAULT_BACK_CAMERA
+
+            cameraProvider.unbindAll()
+            cameraProvider.bindToLifecycle(
+                this,
+                cameraSelector,
+                preview,
+                capturedImage
+            )
+        }, ContextCompat.getMainExecutor(this))
+    }
+
+    private fun vibrateOnCapture() {
+        val duration = 40L
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+            val vibratorManager = getSystemService(VibratorManager::class.java)
+            val vibrator = vibratorManager.defaultVibrator
+            vibrator.vibrate(
+                VibrationEffect.createOneShot(
+                    duration,
+                    VibrationEffect.DEFAULT_AMPLITUDE
+                )
+            )
+        } else {
+            @Suppress("DEPRECATION")
+            val vibrator = getSystemService(VIBRATOR_SERVICE) as Vibrator
+            vibrator.vibrate(
+                VibrationEffect.createOneShot(
+                    duration,
+                    VibrationEffect.DEFAULT_AMPLITUDE
+                )
+            )
+        }
+
+    }
+
+    private fun showCameraFlash() {
+        val flashView = findViewById<View>(R.id.cameraFlashView)
+
+        flashView.visibility = View.VISIBLE
+        flashView.alpha = 0f
+
+        flashView.animate()
+            .alpha(0.85f)
+            .setDuration(60)
+            .withEndAction {
+                flashView.animate()
+                    .alpha(0f)
+                    .setDuration(180)
+                    .withEndAction {
+                        flashView.visibility = View.GONE
+                    }
+                    .start()
+            }
+            .start()
     }
 
 }

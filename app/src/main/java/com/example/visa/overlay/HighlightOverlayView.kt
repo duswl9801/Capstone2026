@@ -9,7 +9,7 @@ import android.util.AttributeSet
 import android.view.View
 import com.example.visa.dataclasses.BoundingBox
 
-// An overlay UI component that draws highlights on the screen
+// overlay UI component that draws highlights on the screen
 class HighlightOverlayView @JvmOverloads constructor(
     context: Context,
     attrs: AttributeSet? = null

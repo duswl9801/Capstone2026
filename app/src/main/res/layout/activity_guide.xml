@@ -1,0 +1,112 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/main"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/visa_soft_beige"
+    tools:context=".GuideActivity">
+
+    <!-- Background image -->
+    <!--
+    <ImageView
+        android:id="@+id/imgGuideBackground"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:scaleType="centerCrop"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        android:background="@color/visa_soft_beige"/>
+      -->
+
+    <!-- Optional dark/soft overlay so text card stands out -->
+    <View
+        android:id="@+id/bgDim"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:background="#22000000"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent" />
+
+    <!-- Guide card -->
+    <androidx.cardview.widget.CardView
+        android:id="@+id/cardGuide"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="25dp"
+        android:layout_marginEnd="25dp"
+        android:layout_marginBottom="72dp"
+        app:cardCornerRadius="26dp"
+        app:cardElevation="10dp"
+        app:cardBackgroundColor="#FFFFFF"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:paddingStart="24dp"
+            android:paddingTop="24dp"
+            android:paddingEnd="24dp"
+            android:paddingBottom="22dp">
+
+            <TextView
+                android:id="@+id/txtGuideTitle"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="How to Use Screen Assistant"
+                android:textColor="@color/visa_brown"
+                android:textSize="30sp"
+                android:textStyle="bold"
+                android:letterSpacing="0.02"
+                app:fontFamily="@font/lexend_semibold" />
+
+            <TextView
+                android:id="@+id/txtGuideBody"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="16dp"
+                android:text="1. Tap the bubble when you need help.&#10;2. Enter your goal and tap Continue.&#10;3. The assistant reads the screen and highlights the next target.&#10;4. Tap Execute if you want the assistant to run the action.&#10;5. Press and hold the bubble to stop."
+                android:textColor="@color/visa_brown"
+                android:textSize="20sp"
+                android:lineSpacingExtra="5dp"
+                android:letterSpacing="0.01"
+                app:fontFamily="@font/lexend_regular" />
+
+            <TextView
+                android:id="@+id/txtGuideNote"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="14dp"
+                android:text="The assistant never acts without your approval.&#10;Tap ? to see this guide again."
+                android:textColor="@color/visa_brown"
+                android:textSize="18sp"
+                android:lineSpacingExtra="4dp"
+                app:fontFamily="@font/lexend_regular" />
+
+            <Button
+                android:id="@+id/btnGetStarted"
+                app:backgroundTint="@null"
+                android:layout_width="match_parent"
+                android:layout_height="50dp"
+                android:layout_marginTop="20dp"
+                android:text="Get Started"
+                android:textAllCaps="false"
+                android:textSize="15sp"
+                android:textColor="@android:color/white"
+                android:background="@drawable/bg_dialog_button"
+                app:fontFamily="@font/lexend_regular" />
+
+        </LinearLayout>
+
+    </androidx.cardview.widget.CardView>
+
+</androidx.constraintlayout.widget.ConstraintLayout>

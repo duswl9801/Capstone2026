@@ -14,14 +14,15 @@ import android.view.animation.LinearInterpolator
 class EdgeGlowView (context: Context) : View(context){
     private val paint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
         style = Paint.Style.STROKE
-        strokeWidth = 10f
+        strokeWidth = 8f
     }
 
-    private var offset = 0f
+    private var offset = 0f // gradient positoini
 
-    private val animator = ValueAnimator.ofFloat(0f, 1000f).apply {
+    private val animator = ValueAnimator.ofFloat(0f, 2000f).apply {
         duration = 3000
         repeatCount = ValueAnimator.INFINITE
+        repeatMode = ValueAnimator.REVERSE
         interpolator = LinearInterpolator()
         addUpdateListener {
             offset = it.animatedValue as Float
@@ -40,13 +41,13 @@ class EdgeGlowView (context: Context) : View(context){
             width.toFloat() + offset,
             height.toFloat(),
             intArrayOf(
-                Color.RED,
-                Color.YELLOW,
-                Color.GREEN,
-                Color.CYAN,
-                Color.BLUE,
-                Color.MAGENTA,
-                Color.RED
+                Color.parseColor("#00B8D9"), // clear cyan
+                Color.parseColor("#00C853"), // calm green
+                Color.parseColor("#2979FF"), // visible blue
+                Color.parseColor("#7C4DFF"), // purple
+                Color.parseColor("#D500F9"), // magenta-purple
+                Color.parseColor("#FFB300"), // warm amber
+                Color.parseColor("#00B8D9")  // back to cyan
             ),
             null,
             Shader.TileMode.MIRROR
@@ -70,5 +71,4 @@ class EdgeGlowView (context: Context) : View(context){
         super.onDetachedFromWindow()
         animator.cancel()
     }
-
 }

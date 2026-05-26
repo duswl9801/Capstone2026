@@ -14,24 +14,6 @@ import androidx.core.graphics.drawable.toDrawable
 import com.example.visa.accessibility.ScreenAccessibilityService
 
 object DialogUtils {
-
-    // check if accessibility is turned on
-    fun isAccessibilityServiceEnabled(context: Context): Boolean {
-        val expectedServiceName = ComponentName(
-            context,
-            ScreenAccessibilityService::class.java
-        ).flattenToString()
-
-        val enabledServices = Settings.Secure.getString(
-            context.contentResolver,
-            Settings.Secure.ENABLED_ACCESSIBILITY_SERVICES
-        ) ?: return false
-
-        return enabledServices.split(":").any {
-            it.equals(expectedServiceName, ignoreCase = true)
-        }
-    }
-
     // accessibility dialog
     fun showAccessibilityGuideDialog(context: Context) {
         val view = LayoutInflater.from(context)
@@ -61,13 +43,8 @@ object DialogUtils {
             (context.resources.displayMetrics.widthPixels * 0.90).toInt(),
             WindowManager.LayoutParams.WRAP_CONTENT
         )
-
     }
 
-    fun handleScreenAssistantClick(context: Context, onEnabled: () -> Unit) {
-        if (isAccessibilityServiceEnabled(context)) { onEnabled() } else {
-            showAccessibilityGuideDialog(context)
-        }
-    }
+
 
 }

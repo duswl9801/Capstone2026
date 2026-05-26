@@ -18,7 +18,6 @@ import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.OkHttpClient
 import okhttp3.Request
 import okhttp3.RequestBody.Companion.toRequestBody
-import org.json.JSONArray
 import org.json.JSONObject
 import java.util.concurrent.TimeUnit
 
@@ -46,28 +45,20 @@ class VisualAnalyzer(
     suspend fun detectText(image: Bitmap): OCRResult {
         // TODO: connect to python OCR server
         // Use ML Kit OCR for Now. Don't know later
-        val inputImage = InputImage.fromBitmap(image, 0)
+        val image = InputImage.fromBitmap(image, 0)
 
         val recognizer = TextRecognition.getClient(TextRecognizerOptions.DEFAULT_OPTIONS)
-        val visionText: Text = recognizer.process(inputImage).await()
+        val visionText: Text = recognizer.process(image).await()
 
         val detectedTexts = arrayListOf<DetectedText>()
 
         for (block in visionText.textBlocks){
             for (line in block.lines) {
                 val box = line.boundingBox ?: continue
+                val confidence = line.confidence
 
                 detectedTexts.add(
-                    DetectedText(
-                        text = line.text,
-                        box = BoundingBox(
-                            x1 = box.left,
-                            y1 = box.top,
-                            x2 = box.right,
-                            y2 = box.bottom
-                        ),
-                        confidence = 1.0f
-                    )
+                    DetectedText(text = line.text, box = BoundingBox(x1 = box.left, y1 = box.top, x2 = box.right, y2 = box.bottom), confidence = confidence)
                 )
             }
         }
@@ -81,7 +72,7 @@ class VisualAnalyzer(
         for (text in filteredTexts) {
             val last = mergedTexts.lastOrNull() // bring last element from the text
 
-            val shouldMerge = // true -> merge | false -> do nothing
+            val shouldMerge = // true -> merge | false -> do nothing. y: vertical, x: horizental
                 last != null &&
                         abs(last.box.y1 - text.box.y1) < mergeDistanceThreshold_y &&
                         text.box.x1 - last.box.x2 < mergeDistanceThreshold_x
@@ -103,6 +94,7 @@ class VisualAnalyzer(
                 mergedTexts.add(text)
             }
         }
+
         return OCRResult(mergedTexts)
     }
 

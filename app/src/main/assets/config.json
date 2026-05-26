@@ -3,8 +3,8 @@
 		"ocr": {
 			"name": "EasyOCR",
 			"minConfidence": 0.8,
-			"mergeDistanceThreshold_y": 20,
-			"mergeDistanceThreshold_x": 4
+			"mergeDistanceThreshold_x": 20,
+			"mergeDistanceThreshold_y": 50
 		},
 		"model": {
 			"modelName" : "gemme3: 4b"
@@ -21,8 +21,10 @@
 		],
 		"output_format": {
 			"action": "",
-			"target_label": "",
-			"input_text": ""
+			"targetText": "",
+			"targetContentDescription": "",
+			"targetClassName": "",
+			"inputText": ""
 		}
 	}
 }

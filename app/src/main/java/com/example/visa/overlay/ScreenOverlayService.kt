@@ -15,8 +15,8 @@ import com.example.visa.MainActivity
 import com.example.visa.R
 import kotlin.math.hypot
 import android.app.AlertDialog
+import android.content.res.ColorStateList
 import android.graphics.Color
-import android.widget.Button
 import android.widget.EditText
 import android.widget.Toast
 import androidx.core.graphics.drawable.toDrawable
@@ -26,50 +26,60 @@ import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.cancel
 import android.widget.TextView
-import android.widget.LinearLayout
 import android.graphics.drawable.GradientDrawable
-import org.json.JSONObject
-
 
 import com.example.visa.AppContainer
 import com.example.visa.analyzer.VisualAnalyzer
-import com.example.visa.dataclasses.ScreenContext
-import com.example.visa.dataclasses.OCRResult
+import com.example.visa.util.Utils.dp
+
 import android.util.Log
 import android.view.View
+import android.widget.ImageView
+import androidx.compose.runtime.Immutable
+import androidx.core.content.ContextCompat
+import androidx.core.widget.ImageViewCompat
 import com.example.visa.accessibility.ScreenAccessibilityService
-import com.example.visa.dataclasses.BoundingBox
+import com.example.visa.dataclasses.Assistant
+import com.example.visa.dataclasses.RecommendedAction
+import com.example.visa.dataclasses.User
+import com.example.visa.util.TTSManager
+import com.example.visa.util.Utils
+import com.example.visa.util.Utils.parseBoundsToBoundingBox
 
 class ScreenOverlayService : Service() {
 
-    private lateinit var windowManager: WindowManager
-
-    private lateinit var edgeGlowView: EdgeGlowView
-    private lateinit var edgeGlowParams: WindowManager.LayoutParams
-
-    private lateinit var bubbleView: AssistantBubbleView
-    private lateinit var bubbleParams: WindowManager.LayoutParams
-
-    //private lateinit var highlightOverlayView: HighlightOverlayView
-    //private lateinit var highlightOverlayParams: WindowManager.LayoutParams
-    private var targetBoxView: View? = null
-
-    private val handler = Handler(Looper.getMainLooper())
-    private lateinit var analyzer: VisualAnalyzer
+    private lateinit var windowManager: WindowManager // Android system manager managing overlay views (directly on top of other apps)
+    private val handler = Handler(Looper.getMainLooper()) // thread handler
+    // CoroutineScope: execute/manage coroutine tasks
+    // SupervisorJob: keeps other coroutines running if one fails
+    // Dispatchers.Main: run tasks on the UI thread
     private val serviceScope = CoroutineScope(SupervisorJob() + Dispatchers.Main)
 
+    private lateinit var analyzer: VisualAnalyzer
+    private lateinit var assistant: Assistant
+    private lateinit var user: User
+
+    // custom views
+    private lateinit var edgeGlowView: EdgeGlowView
+    private lateinit var edgeGlowParams: WindowManager.LayoutParams
+    private lateinit var bubbleView: AssistantBubbleView
+    private lateinit var bubbleParams: WindowManager.LayoutParams
+    private var speechView: View? = null
+    private var loadingView: View? = null
+
+    private var nextAction: RecommendedAction? = null
+    private var targetBoxView: View? = null
     private var resultView: View? = null
 
     private var initialX = 0
     private var initialY = 0
     private var initialTouchX = 0f
     private var initialTouchY = 0f
-
     private var isDragging = false
     private var isLongPressTriggered = false
-
     private val longPressDelay = 600L
 
+    // handling long press action for the bubble
     private val longPressRunnable = Runnable {
         if (!isDragging) {
             isLongPressTriggered = true
@@ -80,12 +90,50 @@ class ScreenOverlayService : Service() {
     override fun onCreate() {
         super.onCreate()
 
+        TTSManager.init(this)
+
         windowManager = getSystemService(WINDOW_SERVICE) as WindowManager
+
         analyzer = AppContainer.visualAnalyzer
+        assistant  = AppContainer.assistant
+        user = AppContainer.user
 
         addEdgeGlow()
-        //addHighlightOverlay()
         addAssistantBubble()
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+
+        handler.removeCallbacks(longPressRunnable)
+        serviceScope.cancel()
+
+        if (::edgeGlowView.isInitialized) {
+            removeOverlayView(edgeGlowView)
+        }
+        if (::bubbleView.isInitialized) {
+            removeOverlayView(bubbleView)
+        }
+        removeOverlayView(targetBoxView)
+        targetBoxView = null
+        removeOverlayView(speechView)
+        speechView = null
+        removeOverlayView(resultView)
+        resultView = null
+        removeOverlayView(loadingView)
+        loadingView = null
+    }
+
+    override fun onBind(intent: Intent?): IBinder? = null
+
+    private fun removeOverlayView(view: View?) {
+        if (view == null) return
+
+        try {
+            windowManager.removeView(view)
+        } catch (e: Exception) {
+            e.printStackTrace()
+        }
     }
 
     private fun addEdgeGlow() {
@@ -136,21 +184,17 @@ class ScreenOverlayService : Service() {
         windowManager.addView(bubbleView, bubbleParams)
     }
 
-    private fun dp(value: Int): Int {
-        return (value * resources.displayMetrics.density).toInt()
-    }
-
     private fun setupBubbleTouch() {
-        val touchSlop = ViewConfiguration.get(this).scaledTouchSlop
+        val touchSlop = ViewConfiguration.get(this).scaledTouchSlop // threshold for distinguishing drag from tap
 
-        bubbleView.setOnClickListener {
-            handleBubbleClick()
-        }
+        // click
+        bubbleView.setOnClickListener { handleBubbleClick() }
 
+        // drag
         bubbleView.setOnTouchListener { view, event ->
             when (event.action) {
 
-                MotionEvent.ACTION_DOWN -> {
+                MotionEvent.ACTION_DOWN -> { // touch starts
                     initialX = bubbleParams.x
                     initialY = bubbleParams.y
                     initialTouchX = event.rawX
@@ -164,7 +208,7 @@ class ScreenOverlayService : Service() {
                     true
                 }
 
-                MotionEvent.ACTION_MOVE -> {
+                MotionEvent.ACTION_MOVE -> { // touch moves
                     val dx = event.rawX - initialTouchX
                     val dy = event.rawY - initialTouchY
                     val distance = hypot(dx, dy)
@@ -182,7 +226,7 @@ class ScreenOverlayService : Service() {
                     true
                 }
 
-                MotionEvent.ACTION_UP -> {
+                MotionEvent.ACTION_UP -> { // touch ends
                     handler.removeCallbacks(longPressRunnable)
 
                     if (!isDragging && !isLongPressTriggered) {
@@ -202,27 +246,30 @@ class ScreenOverlayService : Service() {
         }
     }
 
-    private fun handleBubbleClick() {
-        showGoalInputDialog()
-    }
-
-    private fun showGoalInputDialog() {
+    private fun handleBubbleClick()  {
+        // show goal receiving dialog
         val dialogView = LayoutInflater.from(this)
             .inflate(R.layout.dialog_goal_input, null)
 
         val editGoal = dialogView.findViewById<EditText>(R.id.editGoal)
-        val btnSubmit = dialogView.findViewById<Button>(R.id.btnSubmitGoal)
-        val btnCancel = dialogView.findViewById<Button>(R.id.btnCancelGoal)
+        val btnOk = dialogView.findViewById<TextView>(R.id.btnOk)
+        val btnCancel = dialogView.findViewById<TextView>(R.id.btnCancel)
+        val btnSpeaker = dialogView.findViewById<ImageView>(R.id.btnSpeak)
+        ImageViewCompat.setImageTintList(
+            btnSpeaker,
+            ColorStateList.valueOf(ContextCompat.getColor(this, R.color.visa_orange))
+        )
+        val textDialogMessage = dialogView.findViewById<TextView>(R.id.dialogMessage)
 
         val dialog = AlertDialog.Builder(this)
             .setView(dialogView)
             .create()
 
         dialog.window?.setBackgroundDrawable(Color.TRANSPARENT.toDrawable())
-
+        // sets the dialog as an overlay window so it can appear outside an Activity
         dialog.window?.setType(WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY)
 
-        btnSubmit.setOnClickListener {
+        btnOk.setOnClickListener {
             val goal = editGoal.text.toString().trim()
 
             if (goal.isEmpty()) {
@@ -230,31 +277,73 @@ class ScreenOverlayService : Service() {
                 return@setOnClickListener
             }
 
+            user.setGoal(goal)
+
             dialog.dismiss()
 
-            startScreenAssistant(goal)
+            receiveNextAction(user.goal)
         }
+
+        btnSpeaker.setOnClickListener { TTSManager.speak(textDialogMessage.text.toString()) }
 
         btnCancel.setOnClickListener {
             dialog.dismiss()
         }
 
-        dialog.setOnShowListener {
+        """
+          dialog.setOnShowListener { // focus editText and open keyboard
             editGoal.requestFocus()
 
             dialog.window?.setSoftInputMode(
                 WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_VISIBLE
             )
-        }
+        }  
+        """
 
         dialog.show()
     }
 
-    private fun startScreenAssistant(goal: String) {
-        // Next step:
-        // 1. capture screenshot
+    private fun receiveNextAction(goal: String?) {
+        // receive next action from VLM
+        serviceScope.launch {
+            try {
+                showLoadingOverlay("Reading this screen...")
 
-        Log.d("ScreenAssistant", "Goal received: $goal")
+                val recommendedAction = assistant.requestNextAction(goal)
+
+                if (recommendedAction == null) {
+                    Toast.makeText(
+                        this@ScreenOverlayService,
+                        "Failed to parse next action.",
+                        Toast.LENGTH_SHORT
+                    ).show()
+                    return@launch
+                }
+
+                nextAction = recommendedAction
+
+                // find target element from current screen
+                val accessibilityService = ScreenAccessibilityService.instance
+
+                // serch target ui in current screen
+                val targetElement = accessibilityService?.giveTargetInfo(recommendedAction)
+                Log.d("ScreenAssistant", "target element: $targetElement")
+
+                // highlight target element
+                highlightTarget(targetElement?.bounds)
+
+                // assistant generate explanation
+                val message = assistant.generateExplanation(recommendedAction)
+
+                showMessage(message)
+
+
+            } catch (e: Exception) {Log.e("ActionServer", "Error: ${e.message}", e)}
+            finally { hideLoadingOverlay() }
+        }
+        """
+            // Next step:
+        // 1. capture screenshot
 
         // 2. get current UI elements from AccessibilityService
         val accessibilityService = ScreenAccessibilityService.instance
@@ -265,104 +354,110 @@ class ScreenOverlayService : Service() {
         }
 
         val uiElements = accessibilityService.getCurrentUIElements()
-        Log.d("ScreenAssistant", "UI element count: ${uiElements.size}")
+        Log.d("ScreenAssistant", "UI element count: ${'$'}{uiElements.size}")
 
         // 3. send screenshot + goal + ui elements to VLM/server
         val screenContext = ScreenContext(
             uies = uiElements,
             texts = OCRResult(emptyList()),
             userGoal = goal,
-            screenSummary = ""
+            imgBase64 = "temp image"
         )
 
+        // 4. receive next action
         serviceScope.launch {
             try {
                 Log.d("ActionServer", "Sending ScreenContext to VLM...")
 
                 val result = analyzer.getNextAction(screenContext)
 
-                Log.d("ActionServer", "VLM result: $result")
-                showVlmResultOverlay(result.toString())
+                Log.d("ActionServer", "VLM result: ${'$'}result")
 
-                // highlight target element
-                try {
-                    val json = JSONObject(result.toString())
+                val recommendedAction = JsonUtils.recommendedActionFromJson(result.toString())
 
-                    val actionJson = if (json.has("response")) {
-                        JSONObject(json.optString("response"))
-                    } else {
-                        json
-                    }
+                if (recommendedAction == null) {
+                    Toast.makeText(
+                        this@ScreenOverlayService,
+                        "Failed to parse next action.",
+                        Toast.LENGTH_SHORT
+                    ).show()
 
-                    val boundsString = actionJson.optString("target_bounds", null)
+                    showVlmResultOverlay(result.toString())
 
-                    Log.d("ScreenAssistant", "target_bounds: $boundsString")
+                } else {
+                    pendingAction = recommendedAction
 
-                    showTargetHighlight(boundsString)
-                } catch (e: Exception) {
-                    Log.e("ScreenAssistant", "Failed to parse target bounds", e)
+                    showVlmResultOverlay(result.toString())
+
                 }
 
-
             } catch (e: Exception) {
-                Log.e("ActionServer", "Error: ${e.message}", e)
+                Log.e("ActionServer", "Error: ${'$'}{e.message}", e)
             }
         }
+            
+        """
 
-        // 4. receive next action
         // 5. highlight target or execute after user approval
     }
 
-    private fun returnToMainAndStop() {
-        val intent = Intent(this, MainActivity::class.java).apply {
-            addFlags(
-                Intent.FLAG_ACTIVITY_NEW_TASK or
-                        Intent.FLAG_ACTIVITY_CLEAR_TOP or
-                        Intent.FLAG_ACTIVITY_SINGLE_TOP
-            )
-        }
+    private fun showMessage(message: String) {
+        removeOverlayView(speechView)
+        speechView = null
 
-        startActivity(intent)
-        stopSelf()
-    }
+        val view = LayoutInflater.from(this)
+            .inflate(R.layout.view_assistant_speech, null)
 
-    override fun onDestroy() {
-        super.onDestroy()
+        val txtMessage = view.findViewById<TextView>(R.id.txtSuggestionMessage)
+        val btnDoAction = view.findViewById<TextView>(R.id.btnDoAction)
+        val btnDoMyself = view.findViewById<TextView>(R.id.btnDoMyself)
+        val btnSpeaker = view.findViewById<ImageView>(R.id.btnSpeak)
 
-        handler.removeCallbacks(longPressRunnable)
-        serviceScope.cancel()
+        txtMessage.text = message
 
-        if (::bubbleView.isInitialized) {
-            try {
-                windowManager.removeView(bubbleView)
-            } catch (e: Exception) {
-                e.printStackTrace()
-            }
-        }
+        btnSpeaker.setOnClickListener { TTSManager.speak(txtMessage.text.toString()) }
 
-        if (::edgeGlowView.isInitialized) {
-            try {
-                windowManager.removeView(edgeGlowView)
-            } catch (e: Exception) {
-                e.printStackTrace()
-            }
-        }
+        btnDoAction.setOnClickListener {
+            Log.d("ScreenAssistant", "Execute clicked")
 
-        targetBoxView?.let {
-            try {
-                windowManager.removeView(it)
-            } catch (e: Exception) {
-                e.printStackTrace()
-            }
+            runNextStep()
+
+            // clear
+            removeOverlayView(speechView)
+            speechView = null
+            removeOverlayView(targetBoxView)
             targetBoxView = null
         }
-    }
 
-    override fun onBind(intent: Intent?): IBinder? = null
+        btnDoMyself.setOnClickListener {
+            Log.d("ScreenAssistant", "Do myself clicked")
+
+            removeOverlayView(speechView)
+            speechView = null
+        }
+
+        val params = WindowManager.LayoutParams(
+            WindowManager.LayoutParams.WRAP_CONTENT,
+            WindowManager.LayoutParams.WRAP_CONTENT,
+            WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY,
+            WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE,
+            PixelFormat.TRANSLUCENT
+        ).apply {
+            gravity = Gravity.BOTTOM or Gravity.CENTER_HORIZONTAL
+            y = dp(120)
+        }
+
+        speechView = view
+
+        try {
+            windowManager.addView(view, params)
+        } catch (e: Exception) {
+            Log.e("ScreenAssistant", "Failed to show assistant message", e)
+        }
 
 
-    private fun showVlmResultOverlay(result: String) {
-        resultView?.let {
+        """
+           resultView?.let {
             try {
                 windowManager.removeView(it)
             } catch (e: Exception) {
@@ -395,6 +490,26 @@ class ScreenOverlayService : Service() {
             setPadding(0, dp(10), 0, 0)
         }
 
+        val nextstepView = TextView(this).apply {
+            text = "Do action"
+            textSize = 15f
+            setTextColor(Color.rgb(90, 65, 45))
+            setPadding(0, dp(14), 0, 0)
+            setOnClickListener {
+                Log.d("ActionServer", "Clicked do action")
+                runNextStep()
+
+                resultView?.let { view ->
+                    try {
+                        windowManager.removeView(view)
+                    } catch (e: Exception) {
+                        e.printStackTrace()
+                    }
+                    resultView = null
+                }
+            }
+        }
+
         val closeView = TextView(this).apply {
             text = "Close"
             textSize = 15f
@@ -409,11 +524,23 @@ class ScreenOverlayService : Service() {
                     }
                     resultView = null
                 }
+
+                targetBoxView?.let { box ->
+                    try {
+                        windowManager.removeView(box)
+                    } catch (e: Exception) {
+                        e.printStackTrace()
+                    }
+                    targetBoxView = null
+                }
+
+                pendingAction = null
             }
         }
 
         container.addView(titleView)
         container.addView(resultTextView)
+        container.addView(nextstepView)
         container.addView(closeView)
 
         val params = WindowManager.LayoutParams(
@@ -433,24 +560,14 @@ class ScreenOverlayService : Service() {
             windowManager.addView(container, params)
         } catch (e: Exception) {
             Log.e("ScreenAssistant", "Failed to show VLM result overlay", e)
-        }
+        } 
+            
+            
+        """
+
     }
 
-    private fun parseBoundsToBoundingBox(bounds: String?): BoundingBox? {
-        if (bounds.isNullOrBlank()) return null
-
-        val regex = Regex("""\[(\-?\d+),(\-?\d+)\]\[(\-?\d+),(\-?\d+)\]""")
-        val match = regex.find(bounds) ?: return null
-
-        return BoundingBox(
-            x1 = match.groupValues[1].toInt(),
-            y1 = match.groupValues[2].toInt(),
-            x2 = match.groupValues[3].toInt(),
-            y2 = match.groupValues[4].toInt()
-        )
-    }
-
-    private fun showTargetHighlight(bounds: String?) {
+    private fun highlightTarget(bounds: String?) {
         val box = parseBoundsToBoundingBox(bounds)
 
         if (box == null) {
@@ -465,11 +582,6 @@ class ScreenOverlayService : Service() {
         val right = box.x2 + padding
         val bottom = box.y2 + padding
 
-        if (box == null) {
-            Log.d("ScreenAssistant", "No valid target bounds")
-            return
-        }
-
         targetBoxView?.let {
             try {
                 windowManager.removeView(it)
@@ -478,10 +590,11 @@ class ScreenOverlayService : Service() {
             }
         }
 
+        val color = Color.CYAN
         val boxView = View(this).apply {
             background = GradientDrawable().apply {
-                setColor(Color.argb(75, 255, 230, 90))
-                setStroke(dp(1), Color.argb(90, 255, 180, 40))
+                setColor(Color.argb(70, Color.red(color), Color.green(color), Color.blue(color)))
+                setStroke(dp(1), color)
                 cornerRadius = dp(14).toFloat()
             }
         }
@@ -515,5 +628,84 @@ class ScreenOverlayService : Service() {
         }, 5000L)
     }
 
+    private fun runNextStep() {
+        val action = nextAction
+
+        if (action == null) {
+            Toast.makeText(this, "No action to run.", Toast.LENGTH_SHORT).show()
+            Log.d("ScreenAssistant", "pendingAction is null")
+            return
+        }
+
+        val service = ScreenAccessibilityService.instance
+
+        if (service == null) {
+            Toast.makeText(this, "Accessibility service is not connected.", Toast.LENGTH_SHORT).show()
+            Log.d("ScreenAssistant", "AccessibilityService instance is null")
+            return
+        }
+
+        val success = service.executeNextAction(action)
+
+        if (success == null) { Toast.makeText(this, "Failed to execute action.", Toast.LENGTH_SHORT).show()}
+
+        nextAction = null
+    }
+
+    private fun returnToMainAndStop() {
+        val intent = Intent(this, MainActivity::class.java).apply {
+            addFlags(
+                Intent.FLAG_ACTIVITY_NEW_TASK or
+                        Intent.FLAG_ACTIVITY_CLEAR_TOP or
+                        Intent.FLAG_ACTIVITY_SINGLE_TOP
+            )
+        }
+
+        startActivity(intent)
+        stopSelf()
+    }
+
+    private fun showLoadingOverlay(message: String = "Reading this screen...") {
+        if (loadingView != null) return
+
+        val view = LayoutInflater.from(this)
+            .inflate(R.layout.loading, null)
+        view.visibility = View.VISIBLE
+
+        val loadingText = view.findViewById<TextView>(R.id.loadingText)
+
+        // 여기서 Utils 함수 사용
+        Utils.showLoading(view, loadingText, message)
+
+        val params = WindowManager.LayoutParams(
+            WindowManager.LayoutParams.MATCH_PARENT,
+            WindowManager.LayoutParams.MATCH_PARENT,
+            WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY,
+            WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE,
+            PixelFormat.TRANSLUCENT
+        ).apply {
+            gravity = Gravity.TOP or Gravity.START
+            x = 0
+            y = 0
+        }
+
+        try {
+            windowManager.addView(view, params)
+            loadingView = view
+        } catch (e: Exception) {
+            Log.e("ScreenAssistant", "Failed to show loading overlay", e)
+        }
+    }
+
+    private fun hideLoadingOverlay() {
+        loadingView?.let { view ->
+            try {
+                windowManager.removeView(view)
+            } catch (e: Exception) {
+                Log.e("ScreenAssistant", "Failed to remove loading overlay", e)
+            }
+            loadingView = null
+        }
+    }
 
 }

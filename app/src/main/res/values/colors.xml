@@ -20,5 +20,6 @@
     <color name="visa_text_dark">#202020</color>
     <color name="visa_text_light">#FFFFFF</color>
 
+    <color name="visa_orange">#FF4B33</color>
 
 </resources>

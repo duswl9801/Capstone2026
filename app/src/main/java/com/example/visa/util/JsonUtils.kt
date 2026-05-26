@@ -3,6 +3,7 @@ package com.example.visa.util
 import com.example.visa.dataclasses.BoundingBox
 import com.example.visa.dataclasses.DetectedText
 import com.example.visa.dataclasses.OCRResult
+import com.example.visa.dataclasses.RecommendedAction
 import com.example.visa.dataclasses.ScreenContext
 import com.example.visa.dataclasses.UIElement
 import org.json.JSONArray
@@ -10,13 +11,36 @@ import org.json.JSONObject
 
 object JsonUtils {
 
+    fun recommendedActionFromJson(resultString: String): RecommendedAction? {
+        return try {
+            val json = JSONObject(resultString)
+
+            val actionJson = if (json.has("response")) {
+                JSONObject(json.optString("response"))
+            } else {
+                json
+            }
+
+            RecommendedAction(
+                action = actionJson.optString("action", ""),
+                targetText = actionJson.optNullableString("targetText"),
+                targetContentDescription = actionJson.optNullableString("targetContentDescription"),
+                targetClassName = actionJson.optNullableString("targetClassName"),
+                inputText = actionJson.optNullableString("inputText")
+            )
+
+        } catch (e: Exception) {
+            e.printStackTrace()
+            null
+        }
+    }
+
     fun screenContextToJson(screenContext: ScreenContext): JSONObject {
         return JSONObject().apply {
-            put("userGoal", screenContext.userGoal)
-            put("screenSummary", screenContext.screenSummary)
             put("uies", uiElementsToJsonArray(screenContext.uies))
             put("texts", ocrResultToJson(screenContext.texts))
-            put("highlightedElements", boundingBoxesToJsonArray(screenContext.highlightedElements))
+            put("userGoal", screenContext.userGoal)
+            put("imgBase64", screenContext.imgBase64)
         }
     }
 
@@ -30,7 +54,6 @@ object JsonUtils {
 
     private fun uiElementToJson(ui: UIElement): JSONObject {
         return JSONObject().apply {
-            put("id", ui.id)
             put("text", ui.text)
             put("contentDescription", ui.contentDescription)
             put("className", ui.className)
@@ -41,7 +64,7 @@ object JsonUtils {
         }
     }
 
-    private fun ocrResultToJson(ocrResult: OCRResult): JSONObject {
+    fun ocrResultToJson(ocrResult: OCRResult): JSONObject {
         return JSONObject().apply {
             put("detectedTexts", detectedTextsToJsonArray(ocrResult.detectedTexts))
         }
@@ -59,7 +82,7 @@ object JsonUtils {
         return JSONObject().apply {
             put("text", detectedText.text)
             put("box", boundingBoxToJson(detectedText.box))
-            put("confidence", detectedText.confidence.toString())
+            put("confidence", detectedText.confidence)
         }
     }
 
@@ -79,4 +102,9 @@ object JsonUtils {
             put("y2", box.y2)
         }
     }
+
+    private fun JSONObject.optNullableString(key: String): String? {
+        return if (has(key) && !isNull(key)) optString(key) else null
+    }
+
 }

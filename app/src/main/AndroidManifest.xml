@@ -6,6 +6,7 @@
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW" />
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
+    <uses-permission android:name="android.permission.VIBRATE" />
 
     <uses-feature
         android:name="android.hardware.camera"
@@ -21,7 +22,7 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.VisA">
         <activity
-            android:name=".ScreenPreviewActivity"
+            android:name=".GuideActivity"
             android:exported="false" />
         <activity
             android:name=".MainActivity"
@@ -37,9 +38,6 @@
             android:exported="false" />
         <activity
             android:name=".ShutterActivity"
-            android:exported="false" />
-        <activity
-            android:name=".ScreenActivity"
             android:exported="false" />
 
         <service

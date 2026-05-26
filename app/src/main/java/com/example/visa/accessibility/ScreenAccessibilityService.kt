@@ -193,43 +193,6 @@ class ScreenAccessibilityService : AccessibilityService() {
 
             else -> matches.first()
         }
-
-        """
-        fun search(current: AccessibilityNodeInfo?) {
-            if (current == null) return
-
-            val nodeText = norm(current.text?.toString())
-            val nodeContentDesc = norm(current.contentDescription?.toString())
-
-            val textMatches = !result.targetText.isNullOrBlank() &&
-                    nodeText.equals(result.targetText, ignoreCase = true)
-            val contentDescMatches =  !result.targetContentDescription.isNullOrBlank() &&
-                    nodeContentDesc.equals(result.targetContentDescription, ignoreCase = true)
-            val classMatches = result.targetClassName.isNullOrBlank() || nodeClassName == result.targetClassName
-
-            if ((textMatches || contentDescMatches) && classMatches) { matches.add(current) }
-
-            for (i in 0 until current.childCount) {search(current.getChild(i))}
-        }
-
-        search(node)
-
-        return when {
-            matches.isEmpty() -> {
-                Log.d("ScreenService", "Target not found")
-                null
-            }
-
-            matches.size > 1 -> { // multiple elements are found
-                Log.d("ScreenService", "Target is ambiguous: ${matches.size} matches found")
-                null
-            }
-
-            else -> matches.first()
-        }
-        
-        """
-
     }
 
     private fun findClickableParent(node: AccessibilityNodeInfo?): AccessibilityNodeInfo? {

@@ -59,6 +59,8 @@ class ScreenOverlayService : Service() {
     private lateinit var assistant: Assistant
     private lateinit var user: User
 
+    private var nextAction: RecommendedAction? = null
+
     // custom views
     private lateinit var edgeGlowView: EdgeGlowView
     private lateinit var edgeGlowParams: WindowManager.LayoutParams
@@ -67,7 +69,6 @@ class ScreenOverlayService : Service() {
     private var speechView: View? = null
     private var loadingView: View? = null
 
-    private var nextAction: RecommendedAction? = null
     private var targetBoxView: View? = null
     private var resultView: View? = null
 
@@ -341,64 +342,6 @@ class ScreenOverlayService : Service() {
             } catch (e: Exception) {Log.e("ActionServer", "Error: ${e.message}", e)}
             finally { hideLoadingOverlay() }
         }
-        """
-            // Next step:
-        // 1. capture screenshot
-
-        // 2. get current UI elements from AccessibilityService
-        val accessibilityService = ScreenAccessibilityService.instance
-
-        if (accessibilityService == null) {
-            Log.d("ScreenAssistant", "AccessibilityService instance is null")
-            return
-        }
-
-        val uiElements = accessibilityService.getCurrentUIElements()
-        Log.d("ScreenAssistant", "UI element count: ${'$'}{uiElements.size}")
-
-        // 3. send screenshot + goal + ui elements to VLM/server
-        val screenContext = ScreenContext(
-            uies = uiElements,
-            texts = OCRResult(emptyList()),
-            userGoal = goal,
-            imgBase64 = "temp image"
-        )
-
-        // 4. receive next action
-        serviceScope.launch {
-            try {
-                Log.d("ActionServer", "Sending ScreenContext to VLM...")
-
-                val result = analyzer.getNextAction(screenContext)
-
-                Log.d("ActionServer", "VLM result: ${'$'}result")
-
-                val recommendedAction = JsonUtils.recommendedActionFromJson(result.toString())
-
-                if (recommendedAction == null) {
-                    Toast.makeText(
-                        this@ScreenOverlayService,
-                        "Failed to parse next action.",
-                        Toast.LENGTH_SHORT
-                    ).show()
-
-                    showVlmResultOverlay(result.toString())
-
-                } else {
-                    pendingAction = recommendedAction
-
-                    showVlmResultOverlay(result.toString())
-
-                }
-
-            } catch (e: Exception) {
-                Log.e("ActionServer", "Error: ${'$'}{e.message}", e)
-            }
-        }
-            
-        """
-
-        // 5. highlight target or execute after user approval
     }
 
     private fun showMessage(message: String) {
@@ -454,117 +397,6 @@ class ScreenOverlayService : Service() {
         } catch (e: Exception) {
             Log.e("ScreenAssistant", "Failed to show assistant message", e)
         }
-
-
-        """
-           resultView?.let {
-            try {
-                windowManager.removeView(it)
-            } catch (e: Exception) {
-                e.printStackTrace()
-            }
-        }
-
-        val container = LinearLayout(this).apply {
-            orientation = LinearLayout.VERTICAL
-            setPadding(dp(18), dp(16), dp(18), dp(16))
-
-            background = GradientDrawable().apply {
-                setColor(Color.argb(235, 255, 248, 236)) // soft beige
-                cornerRadius = dp(22).toFloat()
-                setStroke(dp(2), Color.rgb(120, 90, 65))
-            }
-        }
-
-        val titleView = TextView(this).apply {
-            text = "Assistant Suggestion"
-            textSize = 18f
-            setTextColor(Color.rgb(80, 55, 35))
-            setTypeface(null, android.graphics.Typeface.BOLD)
-        }
-
-        val resultTextView = TextView(this).apply {
-            text = result
-            textSize = 16f
-            setTextColor(Color.rgb(60, 45, 35))
-            setPadding(0, dp(10), 0, 0)
-        }
-
-        val nextstepView = TextView(this).apply {
-            text = "Do action"
-            textSize = 15f
-            setTextColor(Color.rgb(90, 65, 45))
-            setPadding(0, dp(14), 0, 0)
-            setOnClickListener {
-                Log.d("ActionServer", "Clicked do action")
-                runNextStep()
-
-                resultView?.let { view ->
-                    try {
-                        windowManager.removeView(view)
-                    } catch (e: Exception) {
-                        e.printStackTrace()
-                    }
-                    resultView = null
-                }
-            }
-        }
-
-        val closeView = TextView(this).apply {
-            text = "Close"
-            textSize = 15f
-            setTextColor(Color.rgb(90, 65, 45))
-            setPadding(0, dp(14), 0, 0)
-            setOnClickListener {
-                resultView?.let { view ->
-                    try {
-                        windowManager.removeView(view)
-                    } catch (e: Exception) {
-                        e.printStackTrace()
-                    }
-                    resultView = null
-                }
-
-                targetBoxView?.let { box ->
-                    try {
-                        windowManager.removeView(box)
-                    } catch (e: Exception) {
-                        e.printStackTrace()
-                    }
-                    targetBoxView = null
-                }
-
-                pendingAction = null
-            }
-        }
-
-        container.addView(titleView)
-        container.addView(resultTextView)
-        container.addView(nextstepView)
-        container.addView(closeView)
-
-        val params = WindowManager.LayoutParams(
-            dp(320),
-            WindowManager.LayoutParams.WRAP_CONTENT,
-            WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY,
-            WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE,
-            PixelFormat.TRANSLUCENT
-        ).apply {
-            gravity = Gravity.TOP or Gravity.CENTER_HORIZONTAL
-            y = dp(90)
-        }
-
-        resultView = container
-
-        try {
-            windowManager.addView(container, params)
-        } catch (e: Exception) {
-            Log.e("ScreenAssistant", "Failed to show VLM result overlay", e)
-        } 
-            
-            
-        """
-
     }
 
     private fun highlightTarget(bounds: String?) {

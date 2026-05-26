@@ -27,13 +27,11 @@ class VisualAnalyzer(
     private val apiToken: String = BuildConfig.ACTION_SERVER_TOKEN,
 
     // OCR
-    private val ocrName: String,
     private val confidenceThreshold: Float,
     private val mergeDistanceThreshold_x: Int,
     private val mergeDistanceThreshold_y: Int,
 
-    // VLM model
-    private val modelName: String
+    // VLM
 ){
     // HTTP client for the desktop server
     private val client = OkHttpClient.Builder()

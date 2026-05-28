@@ -27,6 +27,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.cancel
 import android.widget.TextView
 import android.graphics.drawable.GradientDrawable
+import android.view.ContextThemeWrapper
 
 import com.example.visa.AppContainer
 import com.example.visa.analyzer.VisualAnalyzer
@@ -248,8 +249,11 @@ class ScreenOverlayService : Service() {
     }
 
     private fun handleBubbleClick()  {
+
+        val themedContext = ContextThemeWrapper(this, R.style.Theme_VisA)
+
         // show goal receiving dialog
-        val dialogView = LayoutInflater.from(this)
+        val dialogView = LayoutInflater.from(themedContext)
             .inflate(R.layout.dialog_goal_input, null)
 
         val editGoal = dialogView.findViewById<EditText>(R.id.editGoal)
@@ -258,11 +262,11 @@ class ScreenOverlayService : Service() {
         val btnSpeaker = dialogView.findViewById<ImageView>(R.id.btnSpeak)
         ImageViewCompat.setImageTintList(
             btnSpeaker,
-            ColorStateList.valueOf(ContextCompat.getColor(this, R.color.visa_orange))
+            ColorStateList.valueOf(ContextCompat.getColor(this, R.color.visa_highlight_icon))
         )
         val textDialogMessage = dialogView.findViewById<TextView>(R.id.dialogMessage)
 
-        val dialog = AlertDialog.Builder(this)
+        val dialog = AlertDialog.Builder(themedContext)
             .setView(dialogView)
             .create()
 
@@ -345,16 +349,22 @@ class ScreenOverlayService : Service() {
     }
 
     private fun showMessage(message: String) {
+
+        val themedContext = ContextThemeWrapper(this, R.style.Theme_VisA)
         removeOverlayView(speechView)
         speechView = null
 
-        val view = LayoutInflater.from(this)
+        val view = LayoutInflater.from(themedContext)
             .inflate(R.layout.view_assistant_speech, null)
 
         val txtMessage = view.findViewById<TextView>(R.id.txtSuggestionMessage)
         val btnDoAction = view.findViewById<TextView>(R.id.btnDoAction)
         val btnDoMyself = view.findViewById<TextView>(R.id.btnDoMyself)
         val btnSpeaker = view.findViewById<ImageView>(R.id.btnSpeak)
+        ImageViewCompat.setImageTintList(
+            btnSpeaker,
+            ColorStateList.valueOf(ContextCompat.getColor(this, R.color.visa_highlight_icon))
+        )
 
         txtMessage.text = message
 

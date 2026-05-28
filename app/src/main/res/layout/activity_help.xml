@@ -18,7 +18,7 @@
         android:layout_marginEnd="25dp"
         android:layout_marginBottom="72dp"
         app:cardCornerRadius="26dp"
-        app:cardElevation="5dp"
+        app:cardElevation="10dp"
         app:cardBackgroundColor="?attr/visaCardLightSoftColor"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintStart_toStartOf="parent"
@@ -39,48 +39,44 @@
                 android:layout_height="wrap_content"
                 app:fontFamily="@font/dmsans_extrabold"
                 android:text="@string/guide_title"
-                android:textColor="?attr/visaDarkColor"
-                android:textSize="30sp"
-                android:textStyle="bold"
-                android:letterSpacing="0.02"
-                 />
+                android:textColor="?attr/visaTextDarkSoftColor"
+                android:textSize="35sp"
+                android:letterSpacing="0.02" />
 
             <TextView
                 android:id="@+id/txtGuideBody"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="16dp"
+                app:fontFamily="@font/dmsans_extrabold"
+                android:layout_marginTop="20dp"
                 android:text="@string/guide_body"
-                android:textColor="?attr/visaDarkColor"
-                android:textSize="20sp"
+                android:textColor="?attr/visaTextDarkSoftColor"
+                android:textSize="28sp"
                 android:lineSpacingExtra="5dp"
-                android:letterSpacing="0.01"
-                app:fontFamily="@font/lexend_regular" />
+                android:letterSpacing="0.01" />
 
             <TextView
                 android:id="@+id/txtGuideNote"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="14dp"
-                android:text="The assistant never acts without your approval.&#10;Tap ? to see this guide again."
-                android:textColor="?attr/visaDarkColor"
-                android:textSize="18sp"
-                android:lineSpacingExtra="4dp"
-                app:fontFamily="@font/lexend_regular" />
+                app:fontFamily="@font/dmsans_extrabold"
+                android:layout_marginTop="25dp"
+                android:text="@string/guide_note"
+                android:textColor="?attr/visaTextDarkSoftColor"
+                android:textSize="23sp"/>
 
             <Button
-                android:id="@+id/btnGetStarted"
-                app:backgroundTint="@null"
+                android:id="@+id/btnGoBack"
                 android:layout_width="match_parent"
-                android:layout_height="50dp"
+                android:layout_height="55dp"
                 android:layout_marginTop="20dp"
-                android:text="Get Started"
+                app:fontFamily="@font/dmsans_extrabold"
+                android:text="@string/guide_go_back"
                 android:textAllCaps="false"
-                android:textSize="15sp"
-                android:textColor="@android:color/white"
-                android:background="@drawable/bg_round_button"
-                app:fontFamily="@font/lexend_regular" />
-
+                android:textSize="25sp"
+                android:textColor="?attr/visaBtnTextColor"
+                app:backgroundTint="@null"
+                android:background="@drawable/bg_round_button" />
         </LinearLayout>
 
     </androidx.cardview.widget.CardView>

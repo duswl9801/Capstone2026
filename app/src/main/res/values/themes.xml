@@ -1,19 +1,68 @@
 <resources xmlns:tools="http://schemas.android.com/tools">
     <!-- Base application theme. -->
     <style name="Theme.VisA" parent="Theme.MaterialComponents.DayNight.NoActionBar">
-        <!-- Primary brand color. -->
-        <item name="colorPrimary">@color/purple_500</item>
-        <item name="colorPrimaryVariant">@color/purple_700</item>
-        <item name="colorOnPrimary">@color/white</item>
-        <!-- Secondary brand color. -->
-        <item name="colorSecondary">@color/teal_200</item>
-        <item name="colorSecondaryVariant">@color/teal_700</item>
-        <item name="colorOnSecondary">@color/black</item>
-        <!-- Status bar color. -->
-        <item name="android:statusBarColor">?attr/colorPrimaryVariant</item>
+
+        <!-- App colors -->
+        <item name="visaBackgroundColor">@color/visa_background</item>
+        <item name="visaEmptyColor">@color/visa_empty</item>
+
+        <item name="visaDarkColor">@color/visa_dark</item>
+        <item name="visaLightColor">@color/visa_light</item>
+        <item name="visaSoftColor">@color/visa_soft</item>
+
+        <!-- Card -->
+        <item name="visaCardDarkColor">@color/visa_card_dark</item>
+        <item name="visaCardLightColor">@color/visa_card_light</item>
+        <item name="visaCardLightSoftColor">@color/visa_card_light_soft</item>
+        <item name="visaCardLightSoftOpaqueColor">@color/visa_card_light_soft_opaque</item>
+        <item name="visaCardSoftColor">@color/visa_card_soft</item>
+
+        <!-- Text -->
+        <item name="visaTextDarkSoftColor">@color/visa_text_dark_soft</item>
+        <item name="visaTextDarkSoftHintColor">@color/visa_text_dark_soft_hint</item>
+        <item name="visaTextDarkColorOne">@color/visa_text_dark_one</item>
+        <item name="visaTextDarkColorTwo">@color/visa_text_dark_two</item>
+        <item name="visaTextLightColorOne">@color/visa_text_light_one</item>
+        <item name="visaTextLightColorTwo">@color/visa_text_light_two</item>
+
+        <!-- Icon -->
+        <item name="visaIconMainStrokeColor">@color/visa_icon_main_stroke</item>
+        <item name="visaIconDarkColor">@color/visa_icon_dark</item>
+        <item name="visaIconLightColor">@color/visa_icon_light</item>
+        <item name="visaIconDarkBackgroundColor">@color/visa_icon_dark_background</item>
+        <item name="visaIconLightBackgroundColor">@color/visa_icon_light_background</item>
+
+        <!-- Button -->
+        <item name="visaBtnMainColor">@color/visa_btn_main</item>
+        <item name="visaBtnTextColor">@color/visa_btn_main_text</item>
+
+        <!-- Highlight -->
+        <item name="visaHighlightTextColor">@color/visa_highlight_text</item>
+        <item name="visaHighlightIconColor">@color/visa_highlight_icon</item>
+
+        <item name="visaTextGreetingColor">@color/visa_greeting</item>
+        <item name="visaTextExitColor">@color/visa_exit</item>
+
+        <item name="visaGuideBackground">@color/visa_guide_background</item>
+
+
+
         <!-- Font -->
         <item name="android:fontFamily">@font/dmsans_extralight</item>
         <item name="fontFamily">@font/dmsans_extralight</item>
         <!-- Customize your theme here. -->
     </style>
+
+
+    <!-- CRAZY THEME -->
+    <style name="Theme.VisA.Crazy" parent="Theme.MaterialComponents.DayNight.NoActionBar">
+        <item name="visaBackgroundColor">@color/crazy_background</item>
+        <item name="visaDarkColor">@color/crazy_card_dark</item>
+        <item name="visaLightColor">@color/crazy_card_light</item>
+        <item name="visaHighlightIconColor">@color/crazy_highlight_icon</item>
+
+        <item name="android:windowBackground">?attr/visaBackgroundColor</item>
+        <item name="colorPrimary">@color/crazy_card_dark</item>
+    </style>
+
 </resources>

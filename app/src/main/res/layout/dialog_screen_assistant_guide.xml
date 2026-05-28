@@ -41,7 +41,7 @@
         <Button
             android:id="@+id/btnOpenSettings"
             app:backgroundTint="@null"
-            android:background="@drawable/bg_dialog_button"
+            android:background="@drawable/bg_round_button"
             app:fontFamily="@font/lexend_semibold"
             android:layout_width="match_parent"
             android:layout_height="50dp"
@@ -53,7 +53,7 @@
         <Button
             android:id="@+id/btnCancel"
             app:backgroundTint="@null"
-            android:background="@drawable/bg_dialog_button"
+            android:background="@drawable/bg_round_button"
             app:fontFamily="@font/lexend_semibold"
             android:layout_width="match_parent"
             android:layout_height="50dp"

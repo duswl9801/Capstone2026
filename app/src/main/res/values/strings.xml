@@ -1,7 +1,53 @@
 <resources>
     <string name="app_name">VisA</string>
+
+    <!-- Main screen -->
+    <string name="greeting">GOOD MORNING</string>
+    <string name="main_question">What would you&#10;like to do?</string>
+
+    <string name="screen_mode_label">SCREEN</string>
+    <string name="screen_mode_title">Read what\'s\non my screen</string>
+    <string name="screen_mode_subtitle">Photos, documents, apps</string>
+
+    <string name="camera_mode_label">CAMERA</string>
+    <string name="camera_mode_title">Look at the\nreal world</string>
+    <string name="camera_mode_subtitle">Point &amp; shoot anything</string>
+
+    <string name="exit_app">Exit app</string>
+
+    <!-- Guide screen -->
+    <string name="guide_title">How to Use Screen Assitant</string>
+    <string name="guide_body">1. Tap the bubble when you need help.&#10;2. Enter your goal and tap Continue.&#10;3. The assistant reads the screen and highlights the next target.&#10;4. Tap Execute if you want the assistant to run the action.&#10;5. Press and hold the bubble to stop.</string>
+    <string name="guide_note">The assistant never acts without your approval.&#10;Tap ? to see this guide again.</string>
+    <string name="guide_go_back">Go Back</string>
+
+    <!-- Setting screen -->
+    <string name="setting_title">Settings</string>
+
+
+    <!-- Accessibility service -->
     <string name="screen_assistant_service_name">VisA Screen Assistant</string>
     <string name="accessibility_service_description">
         Reads visible screen text and buttons to help guide you on other app screens.
     </string>
+
+    <!-- Camera screen -->
+    <string name="camera_instruction">Point and shoot to capture</string>
+
+    <!-- Goal Dialog -->
+    <string name="goal_dialog_title">What do you want to do?</string>
+    <string name="goal_dialog_body">Tell me what you need help with. I’ll look at this screen and suggest the next step.</string>
+    <string name="goal_dialog_hint">Example: I want to refill my prescription.</string>
+
+    <!-- Assistant Speech -->
+    <string name="speech_body">Example step...</string>
+
+    <!-- Common words -->
+    <string name="back_to_menu">BACK TO MENU</string>
+    <string name="ok">OK</string>
+    <string name="cancel">Cancel</string>
+    <string name="do_myself">Do myself</string>
+    <string name="execute">Execute</string>
+
+
 </resources>

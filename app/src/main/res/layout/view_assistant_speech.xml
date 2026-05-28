@@ -6,6 +6,7 @@
     android:layout_height="wrap_content"
     android:orientation="vertical"
     android:padding="14dp"
+    app:cardElevation="10dp"
     android:background="@drawable/bg_dialog">
 
     <LinearLayout
@@ -23,18 +24,18 @@
             android:scaleType="fitCenter"
             android:contentDescription="Assistant icon" />
 
-        <TextView
+        <androidx.appcompat.widget.AppCompatTextView
             android:id="@+id/txtSuggestionMessage"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            app:fontFamily="@font/lexend_regular"
             android:maxWidth="160dp"
             android:layout_marginStart="10dp"
             android:layout_marginTop="5dp"
-            android:text="Next step: Tap the highlighted area."
-            android:textColor="@color/visa_brown"
+            android:text="@string/speech_body"
+            android:textColor="?attr/visaTextDarkSoftColor"
             android:textSize="16sp"
-            android:lineSpacingExtra="3dp"
-            app:fontFamily="@font/lexend_regular" />
+            android:lineSpacingExtra="3dp" />
 
         <ImageView
             android:id="@+id/btnSpeak"
@@ -42,7 +43,7 @@
             android:layout_height="30dp"
             android:layout_marginStart="6dp"
             android:src="@drawable/ic_speaker"
-            app:tint="@color/visa_orange"
+            app:tint="@color/visa_highlight_icon"
             android:clickable="true"
             android:focusable="true"
             android:contentDescription="Read this message" />
@@ -56,32 +57,32 @@
         android:layout_gravity="center"
         android:orientation="horizontal">
 
-        <TextView
+        <androidx.appcompat.widget.AppCompatTextView
             android:id="@+id/btnDoMyself"
             android:layout_width="110dp"
             android:layout_height="match_parent"
+            app:fontFamily="@font/lexend_semibold"
             android:gravity="center"
-            android:text="Do myself"
-            android:textColor="@color/visa_taupe"
+            android:text="@string/do_myself"
+            android:textColor="?attr/visaBtnMainColor"
             android:textSize="15sp"
-            android:background="@drawable/bg_suggestion_second_btn"
+            android:background="@drawable/bg_square_secondary_button"
             android:clickable="true"
-            android:focusable="true"
-            app:fontFamily="@font/lexend_semibold" />
+            android:focusable="true" />
 
         <View
             android:layout_width="10dp"
             android:layout_height="match_parent" />
 
-        <TextView
+        <androidx.appcompat.widget.AppCompatTextView
             android:id="@+id/btnDoAction"
             android:layout_width="110dp"
             android:layout_height="match_parent"
             android:gravity="center"
-            android:text="Execute"
-            android:textColor="@android:color/white"
+            android:text="@string/execute"
+            android:textColor="?attr/visaBtnTextColor"
             android:textSize="15sp"
-            android:background="@drawable/bg_suggestion_first_btn"
+            android:background="@drawable/bg_square_button"
             android:clickable="true"
             android:focusable="true"
             app:fontFamily="@font/lexend_semibold" />

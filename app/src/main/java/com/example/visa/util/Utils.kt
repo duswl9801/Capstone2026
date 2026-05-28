@@ -2,11 +2,14 @@ package com.example.visa.util
 
 import android.content.ComponentName
 import android.content.Context
+import android.graphics.Bitmap
 import android.provider.Settings
 import android.view.View
 import android.widget.TextView
 import com.example.visa.accessibility.ScreenAccessibilityService
 import com.example.visa.dataclasses.BoundingBox
+import java.io.ByteArrayOutputStream
+import android.util.Base64
 
 object Utils {
 
@@ -56,6 +59,23 @@ object Utils {
 
     fun hideLoading(loadingOverlay: View) {
         loadingOverlay.visibility = View.GONE
+    }
+
+    fun bitmapToBase64(img: Bitmap): String {
+        val outputStream = ByteArrayOutputStream()
+
+        img.compress(
+            Bitmap.CompressFormat.JPEG,
+            85,
+            outputStream
+        )
+
+        val imageBytes = outputStream.toByteArray()
+
+        return Base64.encodeToString(
+            imageBytes,
+            Base64.NO_WRAP
+        )
     }
 
 }

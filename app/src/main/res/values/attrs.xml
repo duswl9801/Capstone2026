@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <attr name="visaBackgroundColor" format="color" />
+    <attr name="visaEmptyColor" format="color" />
+
+    <attr name="visaDarkColor" format="color" />
+    <attr name="visaLightColor" format="color" />
+    <attr name="visaSoftColor" format="color" />
+
+    <!-- Card -->
+    <attr name="visaCardDarkColor" format="color" />
+    <attr name="visaCardLightColor" format="color" />
+    <attr name="visaCardLightSoftColor" format="color" />
+    <attr name="visaCardLightSoftOpaqueColor" format="color" />
+    <attr name="visaCardSoftColor" format="color" />
+
+    <!-- Text -->
+    <attr name="visaTextDarkSoftColor" format="color" />
+    <attr name="visaTextDarkSoftHintColor" format="color" />
+    <attr name="visaTextDarkColorOne" format="color" />
+    <attr name="visaTextDarkColorTwo" format="color" />
+    <attr name="visaTextLightColorOne" format="color" />
+    <attr name="visaTextLightColorTwo" format="color" />
+
+    <!-- Icon -->
+    <attr name="visaIconMainStrokeColor" format="color" />
+    <attr name="visaIconDarkColor" format="color" />
+    <attr name="visaIconLightColor" format="color" />
+    <attr name="visaIconDarkBackgroundColor" format="color" />
+    <attr name="visaIconLightBackgroundColor" format="color" />
+
+    <!-- Button -->
+    <attr name="visaBtnMainColor" format="color" />
+    <attr name="visaBtnTextColor" format="color" />
+
+    <!-- Highlight -->
+    <attr name="visaHighlightTextColor" format="color" />
+    <attr name="visaHighlightIconColor" format="color" />
+
+    <attr name="visaTextGreetingColor" format="color" />
+    <attr name="visaTextExitColor" format="color" />
+
+    <attr name="visaGuideBackground" format="color" />
+
+
+    <attr name="appAccentColor" format="color" />
+    <attr name="visaMainColorThree" format="color" />
+    <attr name="appSurfaceColor" format="color" />
+    <attr name="appSurfaceSoftColor" format="color" />
+    <attr name="visaTextTertiaryColor" format="color" />
+</resources>

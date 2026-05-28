@@ -11,6 +11,7 @@ import androidx.cardview.widget.CardView
 import com.example.visa.overlay.ScreenOverlayService
 import android.provider.Settings
 import android.net.Uri
+import android.widget.ImageView
 import com.example.visa.dataclasses.AssistMode
 import com.example.visa.dataclasses.Assistant
 
@@ -43,6 +44,8 @@ class MainActivity : AppCompatActivity() {
         txtScreen = findViewById<TextView>(R.id.txtScreen)
         val cardCamera = findViewById<CardView>(R.id.cardCamera)
         val cardExit = findViewById<CardView>(R.id.cardExit)
+        val btnHelp = findViewById<ImageView>(R.id.btnHelp)
+        val btnSetting = findViewById<ImageView>(R.id.btnSetting)
 
         cardCamera.setOnClickListener {
             assistant.start(AssistMode.CAMERA)
@@ -55,10 +58,21 @@ class MainActivity : AppCompatActivity() {
             handlePermission()
         }
 
+        btnHelp.setOnClickListener {
+            val intent = Intent(this, HelpActivity::class.java)
+            startActivity(intent)
+        }
+
+        btnSetting.setOnClickListener {
+            val intent = Intent(this, SettingActivity::class.java)
+            startActivity(intent)
+        }
+
         cardExit.setOnClickListener {
             stopService(Intent(this, ScreenOverlayService::class.java))
             finishAffinity()
         }
+
     }
 
     override fun onResume() {

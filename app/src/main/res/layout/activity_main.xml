@@ -6,40 +6,71 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
-    android:layout_marginStart="10dp"
-    android:layout_marginEnd="10dp"
-    android:background="#F8F8F8"
+    android:layout_marginStart="5dp"
+    android:layout_marginEnd="5dp"
+    android:background="?attr/visaBackgroundColor"
     tools:context=".MainActivity">
 
     <!-- welcome message -->
-    <LinearLayout
+    <androidx.constraintlayout.widget.ConstraintLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:orientation="vertical"
         android:paddingTop="16dp"
         android:paddingBottom="12dp">
 
         <TextView
             android:id="@+id/temptextGood"
-            android:layout_width="wrap_content"
+            android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:text="GOOD MORNING"
+            android:text="@string/greeting"
             android:textSize="15sp"
-            android:textColor="#999999"
-            android:letterSpacing="0.08" />
+            android:textColor="?attr/visaTextGreetingColor"
+            android:letterSpacing="0.08"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toStartOf="@id/topButtons"
+            app:layout_constraintTop_toTopOf="parent" />
 
         <TextView
             android:id="@+id/temptextWould"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:text="@string/main_question"
+            android:textSize="25sp"
+            android:textColor="?attr/visaDarkColor"
+            android:layout_marginTop="4dp"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toStartOf="@id/topButtons"
+            app:layout_constraintTop_toBottomOf="@id/temptextGood" />
+
+        <LinearLayout
+            android:id="@+id/topButtons"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="What would you&#10;like to do?"
-            android:textSize="30sp"
-            android:textStyle="bold"
-            android:textColor="#111111"
-            android:layout_marginTop="4dp" />
-    </LinearLayout>
+            android:layout_gravity="center|end"
+            android:orientation="horizontal"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toTopOf="@id/temptextGood">
 
-    <!-- Screen card (black) -->
+            <ImageView
+                android:id="@+id/btnHelp"
+                android:layout_width="60dp"
+                android:layout_height="60dp"
+                android:layout_marginEnd="12dp"
+                android:src="@drawable/ic_help"
+                android:padding="2dp"
+                android:contentDescription="Help" />
+
+            <ImageView
+                android:id="@+id/btnSetting"
+                android:layout_width="60dp"
+                android:layout_height="60dp"
+                android:src="@drawable/ic_setting"
+                android:padding="2dp"
+                android:contentDescription="Setting" />
+        </LinearLayout>
+    </androidx.constraintlayout.widget.ConstraintLayout>
+
+    <!-- Screen card -->
     <androidx.cardview.widget.CardView
         android:id="@+id/cardScreen"
         android:layout_width="match_parent"
@@ -48,7 +79,7 @@
         android:layout_marginBottom="12dp"
         app:cardCornerRadius="24dp"
         app:cardElevation="0dp"
-        app:cardBackgroundColor="#111111">
+        app:cardBackgroundColor="?attr/visaDarkColor">
 
         <FrameLayout
             android:layout_width="match_parent"
@@ -79,7 +110,7 @@
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="SCREEN"
+                    android:text="@string/screen_mode_label"
                     android:textSize="20sp"
                     android:textColor="#7F7F7F"
                     android:letterSpacing="0.1"
@@ -88,16 +119,17 @@
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Read what's&#10;on my screen"
+                    android:text="@string/screen_mode_title"
                     android:textSize="50sp"
-                    android:textStyle="bold"
-                    android:textColor="#FFFFFF" />
+                    android:textColor="#FFFFFF"
+                    android:singleLine="false"
+                    android:maxLines="2"/>
 
                 <TextView
                     android:id="@+id/txtScreen"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Photos, documents, apps"
+                    android:text="@string/screen_mode_subtitle"
                     android:textSize="18sp"
                     android:textColor="#666666"
                     android:layout_marginTop="6dp" />
@@ -141,7 +173,7 @@
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="CAMERA"
+                    android:text="@string/camera_mode_label"
                     android:textSize="20sp"
                     android:textColor="#AAAAAA"
                     android:letterSpacing="0.1"
@@ -150,15 +182,16 @@
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Look at the&#10;real world"
+                    android:text="@string/camera_mode_title"
                     android:textSize="50sp"
-                    android:textStyle="bold"
-                    android:textColor="#111111" />
+                    android:textColor="#111111"
+                    android:singleLine="false"
+                    android:maxLines="2"/>
 
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Point &amp; shoot anything"
+                    android:text="@string/camera_mode_subtitle"
                     android:textSize="18sp"
                     android:textColor="#999999"
                     android:layout_marginTop="6dp" />
@@ -193,7 +226,7 @@
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Exit app"
+                android:text="@string/exit_app"
                 android:textSize="16sp"
                 android:textStyle="bold"
                 android:textColor="#5F5E5A" />

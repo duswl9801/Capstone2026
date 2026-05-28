@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">VisA</string>
+
+    <!-- Main screen -->
+    <string name="greeting">좋은 아침이에요</string>
+    <string name="main_question">무엇을&#10;도와드릴까요?</string>
+
+    <string name="screen_mode_label">화면</string>
+    <string name="screen_mode_title">화면 내용을&#10;읽어드릴게요</string>
+    <string name="screen_mode_subtitle">사진, 문서, 앱 화면</string>
+
+    <string name="camera_mode_label">카메라</string>
+    <string name="camera_mode_title">주변을&#10;확인해드릴게요</string>
+    <string name="camera_mode_subtitle">카메라로 대상을 비춰보세요</string>
+
+    <string name="exit_app">앱 종료</string>
+
+    <!-- Guide screen -->
+    <string name="guide_title">화면 도우미 사용 방법</string>
+    <string name="guide_body">
+        1. 도움이 필요할 때 버블을 탭하세요&#10;
+        2. 원하는 목표를 입력한 뒤 확인를 누르세요.&#10;
+        3. 도우미가 화면을 읽고 다음 대상 위치를 강조 표시합니다.&#10;
+        4. 실행을 원하면 실행하기를 탭하세요.&#10;
+        5. 도우미 버튼을 길게 누르면 어시스턴트가 종료됩니다.</string>
+    <string name="guide_note">
+        도우미는 사용자의 승인 없이 동작하지 않습니다.&#10;
+        이 가이드를 다시 보려면 ? 버튼을 누르세요.
+    </string>
+    <string name="guide_go_back">뒤로 가기</string>
+
+    <!-- Setting screen -->
+    <string name="setting_title">Settings</string>
+
+    <!-- Camera screen -->
+    <string name="camera_instruction">촬영할 대상을 비춰주세요</string>
+
+    <!-- Goal Dialog -->
+    <string name="goal_dialog_title">무엇을 하고 싶으신가요?</string>
+    <string name="goal_dialog_body">도움이 필요한 내용을 알려주세요. 현재 화면을 분석하고 다음 단계를 안내해드릴게요.</string>
+    <string name="goal_dialog_hint">예시: 처방약을 다시 주문하고 싶어요.</string>
+
+    <!-- Accessibility service -->
+    <string name="screen_assistant_service_name">VisA 화면 도우미</string>
+    <string name="accessibility_service_description">
+        다른 앱 화면의 텍스트와 버튼을 읽고, 사용자가 다음 동작을 선택할 수 있도록 안내합니다.
+    </string>
+
+    <!-- Assistant Speech -->
+    <string name="speech_body">예시 스텝...</string>
+
+    <!-- Common words -->
+    <string name="back_to_menu">메뉴로 돌아가기</string>
+    <string name="ok">확인</string>
+    <string name="cancel">취소</string>
+    <string name="do_myself">실행 안 함</string>
+    <string name="execute">실행하기</string>
+
+
+</resources>

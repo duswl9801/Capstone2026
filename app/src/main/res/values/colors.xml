@@ -1,12 +1,55 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <color name="purple_200">#FFBB86FC</color>
-    <color name="purple_500">#FF6200EE</color>
-    <color name="purple_700">#FF3700B3</color>
-    <color name="teal_200">#FF03DAC5</color>
-    <color name="teal_700">#FF018786</color>
+    <!-- Base -->
+    <color name="visa_background">#F8F8F8</color>
+    <color name="visa_empty">#D1D1D1</color>
+
+    <color name="visa_dark">#111111</color>
+    <color name="visa_light">#F7F7F5</color>
+    <color name="visa_soft">#EFEDEA</color>
+
+    <!-- Cards -->
+    <color name="visa_card_dark">#111111</color>
+    <color name="visa_card_light">#FFFFFF</color>
+    <color name="visa_card_light_soft">#F9F9F6</color>
+    <color name="visa_card_light_soft_opaque">#E6F9F9F6</color>
+    <color name="visa_card_soft">#EFEFEF</color>
+
+    <!-- Text -->
+    <color name="visa_text_dark_soft">#6F6B70</color>
+    <color name="visa_text_dark_soft_hint">#A09CA3</color>
+
+    <color name="visa_text_dark_one">#111111</color>
+    <color name="visa_text_dark_two">#AAAAAA</color>
+    <color name="visa_text_dark_three">#999999</color>
+    <color name="visa_text_light_one">#FFFFFF</color>
+    <color name="visa_text_light_two">#7F7F7F</color>
+    <color name="visa_text_light_three">#666666</color>
+
+    <!-- Icon -->
+    <color name="visa_icon_main_stroke">#3C3836</color>
+    <color name="visa_icon_dark">#3C3836</color>
+    <color name="visa_icon_light">#F8F8F8</color>
+    <color name="visa_icon_dark_background">#3C3836</color>
+    <color name="visa_icon_light_background">#3C3836</color>
+
+    <!-- Button -->
+    <color name="visa_btn_main">#2A2831</color>
+    <color name="visa_btn_main_text">#F4D052</color>
+    <color name="visa_btn_text">#F4D052</color>
+
+    <!-- Highlight -->
+    <color name="visa_highlight_icon">#FF4B33</color>
+    <color name="visa_highlight_text">#F4D052</color>
+
     <color name="black">#FF000000</color>
     <color name="white">#FFFFFFFF</color>
+    <color name="visa_greeting">#999999</color>
+    <color name="visa_exit">#5F5E5A</color>
+
+    <color name="visa_guide_background">#CECED2</color>
+
+
 
     <color name="visa_soft_beige">#F1EFE8</color>
     <color name="visa_icon_stroke">#3C3836</color>
@@ -18,8 +61,41 @@
 
     <color name="visa_charcoal">#1C1C1C</color>
     <color name="visa_text_dark">#202020</color>
-    <color name="visa_text_light">#FFFFFF</color>
 
-    <color name="visa_orange">#FF4B33</color>
+    
+
+    <!-- CRAZY MODE -->
+    <!-- Base -->
+    <color name="crazy_background">#F8F8F8</color>
+
+    <color name="crazy_dark">#111111</color>
+    <color name="crazy_light">#F7F7F5</color>
+    <color name="crazy_soft">#EFEDEA</color>
+
+    <!-- Cards -->
+    <color name="crazy_card_dark">#111111</color>
+    <color name="crazy_card_light">#FFFFFF</color>
+    <color name="crazy_card_soft">#EFEFEF</color>
+
+    <!-- Text -->
+    <color name="crazy_text_dark_one">#111111</color>
+    <color name="crazy_text_dark_two">#AAAAAA</color>
+    <color name="crazy_text_dark_three">#999999</color>
+    <color name="crazy_text_light_one">#FFFFFF</color>
+    <color name="crazy_text_light_two">#7F7F7F</color>
+    <color name="crazy_text_light_three">#666666</color>
+
+    <!-- Icon -->
+    <color name="crazy_icon_main_stroke">#3C3836</color>
+    <color name="crazy_icon_dark">#3C3836</color>
+    <color name="crazy_icon_light">#F8F8F8</color>
+    <color name="crazy_icon_dark_background">#3C3836</color>
+    <color name="crazy_icon_light_background">#3C3836</color>
+
+    <color name="crazy_highlight_icon">#FF4B33</color>
+    <color name="crazy_highlight_text">#F4D052</color>
+
+    <color name="crazy_greeting">#999999</color>
+    <color name="crazy_exit">#5F5E5A</color>
 
 </resources>

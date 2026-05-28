@@ -129,7 +129,8 @@ class CameraActivity : AppCompatActivity() {
 
                     // run OCR with coroutine function
                     lifecycleScope.launch {
-                        val result = analyzer.detectText(bitmap)
+                        //val result = analyzer.detectText(bitmap)
+                        val result = analyzer.detectText_ocr(bitmap)
 
                         // pack OCR text strings into a JSON array to pass to ShutterActivity
                         val ocrJson = JsonUtils.ocrResultToJson(result).toString()

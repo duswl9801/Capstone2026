@@ -5,7 +5,7 @@
     android:id="@+id/shutter"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="#F8F8F8">
+    android:background="?attr/visaBackgroundColor">
 
     <LinearLayout
         android:id="@+id/topBackBar"
@@ -23,17 +23,14 @@
             android:layout_width="24dp"
             android:layout_height="24dp"
             android:contentDescription="Back"
-            android:src="@drawable/ic_arrow_back"
-            app:tint="#333333" />
+            android:src="@drawable/ic_arrow_back" />
 
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginStart="12dp"
-            android:text="BACK TO MENU"
-            android:fontFamily="@font/dmsans_extrabold"
-            android:textColor="#333333"
-            android:textSize="20sp"
+            android:text="@string/back_to_menu"
+            android:textSize="25sp"
             android:letterSpacing="0.05"/>
     </LinearLayout>
 
@@ -54,14 +51,14 @@
         <FrameLayout
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:background="#D1D1D1">
+            android:background="?attr/visaEmptyColor">
 
             <ImageView
                 android:id="@+id/resultImageView"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
                 android:scaleType="centerCrop"
-                android:background="#D1D1D1" />
+                android:background="?attr/visaEmptyColor" />
 
         </FrameLayout>
     </androidx.cardview.widget.CardView>

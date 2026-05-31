@@ -24,8 +24,12 @@ class UIElement(BaseModel):
     editable: bool = False
     bounds: Optional[str] = None
 
+class OCRRequest(BaseModel):
+    #imgBase64: str   -> changed to bytes
+    language: str = "ko"
+
 class screenContextRequest(BaseModel):
     uies: List[UIElement]
     texts: OCRResult
     userGoal: str
-    imgBase64: str
+    #imgBase64: str   -> changed to bytes

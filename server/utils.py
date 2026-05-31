@@ -25,6 +25,9 @@ def collect_uies(request: screenContextRequest) -> str:
         text = clean_text(ui.text)
         desc = clean_text(ui.contentDescription)
 
+        text = text[:120]
+        desc = desc[:120]
+
         kind = "editable" if ui.editable else "clickable" if ui.clickable else "text"
 
         lines.append(
@@ -36,13 +39,11 @@ def collect_uies(request: screenContextRequest) -> str:
             f"bounds='{ui.bounds}'"
         )
 
-        for index, detected in enumerate(request.texts.detectedTexts):
-            text = clean_text(detected.text)
+    for index, detected in enumerate(request.texts.detectedTexts):
+        text = clean_text(detected.text)
 
-            if text:
-                lines.append(
-                    f"OCRText {index}: text='{text}'"
-                )
+        if text:
+            lines.append(f"OCRText {index}: text='{text}'")
 
     visible_uies = "\n".join(lines)
     # print(f"VISIBLE TEXTS: {visible_uies}")
@@ -97,8 +98,9 @@ def get_torch_dtype(model_dtype):
         return torch.float32
     return torch.bfloat16
 
+"""
 def decode_base64_image(img_base64: str) -> Image.Image:
-    """Convert request.imgBase64 to a PIL RGB image."""
+    #Convert request.imgBase64 to a PIL RGB image.
     if not img_base64:
         raise ValueError("imgBase64 is empty")
 
@@ -107,4 +109,13 @@ def decode_base64_image(img_base64: str) -> Image.Image:
         img_base64 = img_base64.split(",", 1)[1]
 
     image_bytes = base64.b64decode(img_base64)
+    return Image.open(io.BytesIO(image_bytes)).convert("RGB")
+"""
+
+
+def decode_image_bytes(image_bytes: bytes) -> Image.Image:
+    """Convert uploaded image bytes to a PIL RGB image."""
+    if not image_bytes:
+        raise ValueError("image_bytes is empty")
+
     return Image.open(io.BytesIO(image_bytes)).convert("RGB")

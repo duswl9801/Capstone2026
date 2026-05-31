@@ -1,18 +1,11 @@
-from fastapi import FastAPI, Header, HTTPException, File, Form, UploadFile
+from fastapi import FastAPI, Header, HTTPException
 import json
 import time
-import io
 
 import torch
 from transformers import AutoProcessor, AutoModelForImageTextToText
 from peft import PeftModel
 import traceback
-
-import base64
-import cv2
-import numpy as np
-import easyocr
-from PIL import Image
 
 from Experiment import Experiment
 from schemas import *
@@ -55,11 +48,11 @@ def load_model():
     return processor, model
 
 # run the fine-tuned model and return raw generated text
-def run_model(prompt: str, image_bytes: bytes | None = None) -> str:
+def run_model(prompt: str, img_base64: str | None = None) -> str:
     image = None
 
-    if image_bytes:
-        image = Image.open(io.BytesIO(image_bytes)).convert("RGB")
+    if img_base64 and img_base64.strip():
+        image = utils.decode_base64_image(img_base64)
 
     messages = build_messages(prompt, image)
 
@@ -84,15 +77,10 @@ def run_model(prompt: str, image_bytes: bytes | None = None) -> str:
 
     generated = outputs[0][inputs["input_ids"].shape[1]:]
 
-    result = PROCESSOR.decode(
+    return PROCESSOR.decode(
         generated,
         skip_special_tokens=True
     ).strip()
-
-    if torch.cuda.is_available():
-        torch.cuda.empty_cache()
-
-    return result
 
 
 app = FastAPI() # create a FastAPI instance
@@ -104,35 +92,17 @@ experiment_logger = Experiment(
     model_name=config.MODEL_NAME,
 )
 
-######CREATE MODELS
-OCR_READER_KO = easyocr.Reader(['ko', 'en'], gpu=True)
-OCR_READER_JA = easyocr.Reader(['ja', 'en'], gpu=False)
-OCR_READER_HI = easyocr.Reader(['hi', 'en'], gpu=False)
 PROCESSOR, MODEL = load_model()
 
 @app.post("/next-action")
-async def ask_next_action(
-        context: str = Form(...),
-        image: Optional[UploadFile] = File(None),
-        authorization: str | None = Header(default=None)
-):
+def ask_next_action(request:screenContextRequest, authorization: str | None = Header(default=None)):
     expected = f"Bearer {config.API_TOKEN}"
 
     if authorization != expected:
         raise HTTPException(status_code=401, detail="Unauthorized")
 
-    try:
-        context_data = json.loads(context)
-        request = screenContextRequest(**context_data)
-    except Exception as e:
-        raise HTTPException(status_code=400, detail=f"Invalid context JSON: {str(e)}")
-
     if len(request.userGoal) > 150:
         raise HTTPException(status_code=400, detail="Goal is too long")
-
-    image_bytes = None
-    if image is not None:
-        image_bytes = await image.read()
 
     start_time = time.perf_counter()
 
@@ -142,7 +112,7 @@ async def ask_next_action(
     prompt = build_prompt(request.userGoal, visible_uies)
 
     try:
-        model_response = run_model(prompt=prompt, image_bytes=image_bytes)
+        model_response = run_model(prompt=prompt, img_base64=request.imgBase64)
     except Exception as e:
         traceback.print_exc()
         raise HTTPException(
@@ -185,7 +155,6 @@ async def ask_next_action(
         }
 
     print(f"user goal: {request.userGoal}")
-    print(f"has image: {image_bytes is not None}")
     print(f"raw response: {model_response}")
     print(f"alignment result: {action_json}")
 
@@ -201,63 +170,3 @@ async def ask_next_action(
     )
 
     return {"response": json.dumps(action_json, ensure_ascii=False)}
-
-@app.post("/text-detection")
-async def detect_text(
-        image: UploadFile = File(...),
-        language: str = Form("ko"),
-        authorization: str | None = Header(default=None)
-):
-    expected = f"Bearer {config.API_TOKEN}"
-
-    if authorization != expected:
-        raise HTTPException(status_code=401, detail="Unauthorized")
-
-    if language == "hi":
-        ocr_reader = OCR_READER_HI
-    elif language == "ja":
-        ocr_reader = OCR_READER_JA
-    else:
-        ocr_reader = OCR_READER_KO
-
-    start_time = time.perf_counter()
-
-    try:
-        img_bytes = await image.read()
-        np_arr = np.frombuffer(img_bytes, np.uint8)
-        cv_image = cv2.imdecode(np_arr, cv2.IMREAD_COLOR)
-
-        if cv_image is None:
-            raise HTTPException(status_code=400, detail="Invalid image")
-
-    except Exception as e:
-        raise HTTPException(status_code=400, detail=f"Image decode error: {str(e)}")
-
-    try:
-        results = ocr_reader.readtext(cv_image)
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=f"OCR error: {str(e)}")
-
-    texts = []
-
-    for box, text, confidence in results:
-        xs = [point[0] for point in box]
-        ys = [point[1] for point in box]
-
-        texts.append({
-            "text": text,
-            "confidence": float(confidence),
-            "box": {
-                "x1": int(min(xs)),
-                "y1": int(min(ys)),
-                "x2": int(max(xs)),
-                "y2": int(max(ys))
-            }
-        })
-
-    latency = round(time.perf_counter() - start_time, 2)
-
-    print(f"OCR latency: {latency}s")
-    print(f"Detected texts: {texts}")
-
-    return {"texts": texts}

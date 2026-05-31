@@ -45,8 +45,6 @@
 
         <item name="visaGuideBackground">@color/visa_guide_background</item>
 
-
-
         <!-- Font -->
         <item name="android:fontFamily">@font/dmsans_extralight</item>
         <item name="fontFamily">@font/dmsans_extralight</item>

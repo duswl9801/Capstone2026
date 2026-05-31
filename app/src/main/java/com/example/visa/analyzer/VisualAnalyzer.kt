@@ -17,10 +17,12 @@ import kotlinx.coroutines.tasks.await
 import kotlinx.coroutines.withContext
 
 import okhttp3.MediaType.Companion.toMediaType
+import okhttp3.MultipartBody
 import okhttp3.OkHttpClient
 import okhttp3.Request
 import okhttp3.RequestBody.Companion.toRequestBody
 import org.json.JSONObject
+import java.io.ByteArrayOutputStream
 import java.util.concurrent.TimeUnit
 
 class VisualAnalyzer(
@@ -99,24 +101,28 @@ class VisualAnalyzer(
         return OCRResult(mergedTexts)
     }
 
-    suspend fun detectText_ocr(image: Bitmap): OCRResult = withContext(Dispatchers.IO) {
+    suspend fun detectText_ocr(image: Bitmap, language: String = "ko"): OCRResult = withContext(Dispatchers.IO) {
 
-        val imgBase64 = Utils.bitmapToBase64(image)
+        val imageBytes = bitmapToJpegBytes(image, quality = 75)
 
-        val json = JSONObject().apply {
-            put("imgBase64", imgBase64)
-            put("language", "ko") // options: "ko", "ja", "hi"
-        }
+        val requestBody = MultipartBody.Builder()
+            .setType(MultipartBody.FORM)
+            .addFormDataPart(
+                "language",
+                language
+            )
+            .addFormDataPart(
+                "image",
+                "camera.jpg",
+                imageBytes.toRequestBody("image/jpeg".toMediaType())
+            ).build()
 
-        val body = json.toString()
-            .toRequestBody("application/json".toMediaType())
-
-        Log.d("OCR", "Connecting Server")
+        Log.d("OCR", "Connecting Server with multipart image")
 
         val request = Request.Builder()
             .url("$baseURL/text-detection")
             .addHeader("Authorization", "Bearer $apiToken")
-            .post(body)
+            .post(requestBody)
             .build()
 
         client.newCall(request).execute().use { response ->
@@ -184,12 +190,31 @@ class VisualAnalyzer(
         }
     }
 
-    suspend fun getNextAction(screenContext: ScreenContext): String = withContext(Dispatchers.IO) {
+    suspend fun getNextAction(
+        screenContext: ScreenContext,
+        imageBytes: ByteArray? = null
+    ): String = withContext(Dispatchers.IO) {
 
-        val json = JsonUtils.screenContextToJson(screenContext)
+        Log.d("VLM Processing", "Visual Analyzer received screen context and image...")
 
-        val body = json.toString()
-            .toRequestBody("application/json".toMediaType())
+        val contextJson = JsonUtils.screenContextToJson(screenContext).toString()
+
+        val multipartBuilder = MultipartBody.Builder()
+            .setType(MultipartBody.FORM)
+            .addFormDataPart(
+                "context",
+                contextJson
+            )
+
+        if (imageBytes != null) {
+            multipartBuilder.addFormDataPart(
+                "image",
+                "screenshot.jpg",
+                imageBytes.toRequestBody("image/jpeg".toMediaType())
+            )
+        }
+
+        val body = multipartBuilder.build()
 
         val request = Request.Builder()
             .url("$baseURL/next-action")
@@ -197,16 +222,22 @@ class VisualAnalyzer(
             .post(body)
             .build()
 
+        Log.d("VLM Processing", "Request made and connect to server...")
+
         client.newCall(request).execute().use { response ->
             val responseBody = response.body?.string() ?: ""
 
-            if (!response.isSuccessful) {
-                throw Exception("Server request failed: ${response.code}, $responseBody")
-            }
+            if (!response.isSuccessful) { throw Exception("Server request failed: ${response.code}, $responseBody") }
 
             val responseJson = JSONObject(responseBody)
             responseJson.getString("response")
         }
+    }
+
+    private fun bitmapToJpegBytes(bitmap: Bitmap, quality: Int = 75): ByteArray {
+        val outputStream = ByteArrayOutputStream()
+        bitmap.compress(Bitmap.CompressFormat.JPEG, quality, outputStream)
+        return outputStream.toByteArray()
     }
 
 }

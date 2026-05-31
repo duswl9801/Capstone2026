@@ -27,6 +27,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.cancel
 import android.widget.TextView
 import android.graphics.drawable.GradientDrawable
+import android.os.Build
 import android.view.ContextThemeWrapper
 
 import com.example.visa.AppContainer
@@ -36,6 +37,7 @@ import com.example.visa.util.Utils.dp
 import android.util.Log
 import android.view.View
 import android.widget.ImageView
+import androidx.annotation.RequiresApi
 import androidx.compose.runtime.Immutable
 import androidx.core.content.ContextCompat
 import androidx.core.widget.ImageViewCompat
@@ -89,6 +91,7 @@ class ScreenOverlayService : Service() {
         }
     }
 
+    @RequiresApi(Build.VERSION_CODES.R)
     override fun onCreate() {
         super.onCreate()
 
@@ -158,6 +161,7 @@ class ScreenOverlayService : Service() {
         windowManager.addView(edgeGlowView, edgeGlowParams)
     }
 
+    @RequiresApi(Build.VERSION_CODES.R)
     private fun addAssistantBubble() {
         bubbleView = LayoutInflater.from(this)
             .inflate(R.layout.view_assistant_bubble, null) as AssistantBubbleView
@@ -186,6 +190,7 @@ class ScreenOverlayService : Service() {
         windowManager.addView(bubbleView, bubbleParams)
     }
 
+    @RequiresApi(Build.VERSION_CODES.R)
     private fun setupBubbleTouch() {
         val touchSlop = ViewConfiguration.get(this).scaledTouchSlop // threshold for distinguishing drag from tap
 
@@ -248,6 +253,7 @@ class ScreenOverlayService : Service() {
         }
     }
 
+    @RequiresApi(Build.VERSION_CODES.R)
     private fun handleBubbleClick()  {
 
         val themedContext = ContextThemeWrapper(this, R.style.Theme_VisA)
@@ -308,7 +314,11 @@ class ScreenOverlayService : Service() {
         dialog.show()
     }
 
+    @RequiresApi(Build.VERSION_CODES.R)
     private fun receiveNextAction(goal: String?) {
+
+        Log.d("ScreenService", "Start receiveNectAction()...")
+
         // receive next action from VLM
         serviceScope.launch {
             try {

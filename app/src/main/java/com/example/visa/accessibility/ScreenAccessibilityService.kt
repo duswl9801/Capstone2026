@@ -1,14 +1,23 @@
 package com.example.visa.accessibility
 
 import android.accessibilityservice.AccessibilityService
+import android.graphics.Bitmap
 import android.graphics.Rect
+import android.os.Build
 import android.os.Bundle
 import android.util.Log
+import android.view.Display
 import android.view.accessibility.AccessibilityEvent
 import android.view.accessibility.AccessibilityNodeInfo
+import androidx.annotation.RequiresApi
+import kotlinx.coroutines.withTimeoutOrNull
 
 import com.example.visa.dataclasses.RecommendedAction
 import com.example.visa.dataclasses.UIElement
+import androidx.core.graphics.scale
+import kotlinx.coroutines.suspendCancellableCoroutine
+import java.io.ByteArrayOutputStream
+import kotlin.coroutines.resume
 
 // Android creates and manages the service instance
 // needed to read screen or run next action
@@ -290,5 +299,66 @@ class ScreenAccessibilityService : AccessibilityService() {
             bounds = rect.toShortString()
         )
     }
+
+
+    //get screen context - Image
+    //AccessibilityService
+    //→ takeScreenshot()
+    //→ Bitmap
+    //→ resize
+    //→ JPEG/WebP compress
+    //→ Multipart or Base64
+    //→ local VLM server
+    @RequiresApi(Build.VERSION_CODES.R)
+    suspend fun takeScreenshotBytes(): ByteArray? =
+        suspendCancellableCoroutine{ continuation ->
+
+            Log.d("VLM Processing", "takeScreenshotBytes() entered...")
+
+            try {
+                takeScreenshot(
+                    Display.DEFAULT_DISPLAY,
+                    mainExecutor,
+                    object : TakeScreenshotCallback {
+
+                        override fun onSuccess(result: ScreenshotResult) {
+                            val bitmap = Bitmap.wrapHardwareBuffer(
+                                result.hardwareBuffer,
+                                result.colorSpace
+                            )?.copy(Bitmap.Config.ARGB_8888, false)
+
+                            result.hardwareBuffer.close()
+
+                            if (bitmap == null) {
+                                Log.e("VLM Processing", "Screenshot bitmap is null...")
+                                continuation.resume(null)
+                                return
+                            }
+
+                            val resizedBitmap = bitmap.scale(720, 1600)
+                            val imageBytes = bitmapToJpegBytes(resizedBitmap, quality = 75)
+
+                            continuation.resume(imageBytes)
+                        }
+
+                        override fun onFailure(errorCode: Int) {
+                            Log.e("\"VLM Processing", "Screenshot failed: $errorCode")
+                            continuation.resume(null)
+                        }
+                    }
+                )
+            } catch (e: Exception) {
+                Log.e("\"VLM Processing", "takeScreenshot threw exception", e)
+                continuation.resume(null)
+            }
+        }
+
+    private fun bitmapToJpegBytes(bitmap: Bitmap, quality: Int = 75): ByteArray {
+        val outputStream = ByteArrayOutputStream()
+        bitmap.compress(Bitmap.CompressFormat.JPEG, quality, outputStream)
+        return outputStream.toByteArray()
+    }
+
+
 
 }

@@ -15,24 +15,31 @@ def clean_text(text: str | None) -> str:
             .replace("\u2069", "")
             .replace("\u200e", "")
             .replace("\u200f", "")
-            .strip()
             .lower()
     )
 
 def collect_uies(request: screenContextRequest) -> str:
     lines = []
+    UI_caches = []
 
     for index, ui in enumerate(request.uies):
         text = clean_text(ui.text)
         desc = clean_text(ui.contentDescription)
 
-        text = text
-        desc = desc
+        #text = text[:200]
+        #desc = desc[:120]
 
-        kind = "editable" if ui.editable else "clickable" if ui.clickable else "text"
+        kind = "editable" if ui.editable else "clickable"
 
         lines.append(
-            f"UIElement {index}: "
+            f"[{index}] "
+            f"text='{text}' "
+            f"contentDescription='{desc}' "
+            f"type='{kind}' "
+        )
+
+        UI_caches.append(
+            f"[{index}] "
             f"text='{text}', "
             f"contentDescription='{desc}', "
             f"className='{ui.className}', "
@@ -40,14 +47,16 @@ def collect_uies(request: screenContextRequest) -> str:
             f"bounds='{ui.bounds}'"
         )
 
-    for index, detected in enumerate(request.texts.detectedTexts):
+    """
+        for index, detected in enumerate(request.texts.detectedTexts):
         text = clean_text(detected.text)
 
         if text:
             lines.append(f"OCRText {index}: text='{text}'")
+    """
 
     visible_uies = "\n".join(lines)
-    print(f"VISIBLE TEXTS: {visible_uies}")
+    print(visible_uies)
 
     return visible_uies
 

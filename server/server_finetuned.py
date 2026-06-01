@@ -156,16 +156,13 @@ async def ask_next_action(
     if len(request.userGoal) > 150:
         raise HTTPException(status_code=400, detail="Goal is too long")
 
-
-
-
     image_bytes = None
     if image is not None:
         image_bytes = await image.read()
 
     start_time = time.perf_counter()
 
-    visible_uies = utils.collect_uies(request)[:30]
+    visible_uies = utils.collect_uies(request)
 
     # prompt = build_prompt(request.userGoal, visible_uies, request.imgBase64)
     prompt = build_prompt(request.userGoal, visible_uies)

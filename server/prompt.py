@@ -1,7 +1,7 @@
 import json
 import config
 
-def build_prompt(user_goal, visible_text, image_base64=None):
+def build_prompt(user_goal, visible_text):
     allowed_actions = "\n".join(f"- {a}" for a in config.ALLOWED_ACTIONS)
     output_format = json.dumps(config.OUTPUT_FORMAT, indent=2)
 

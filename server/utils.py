@@ -5,6 +5,7 @@ from schemas import UIElement, screenContextRequest
 from PIL import Image
 import base64
 
+
 def clean_text(text: str | None) -> str:
     if not text:
         return ""
@@ -25,8 +26,8 @@ def collect_uies(request: screenContextRequest) -> str:
         text = clean_text(ui.text)
         desc = clean_text(ui.contentDescription)
 
-        text = text[:120]
-        desc = desc[:120]
+        text = text
+        desc = desc
 
         kind = "editable" if ui.editable else "clickable" if ui.clickable else "text"
 
@@ -46,7 +47,7 @@ def collect_uies(request: screenContextRequest) -> str:
             lines.append(f"OCRText {index}: text='{text}'")
 
     visible_uies = "\n".join(lines)
-    # print(f"VISIBLE TEXTS: {visible_uies}")
+    print(f"VISIBLE TEXTS: {visible_uies}")
 
     return visible_uies
 

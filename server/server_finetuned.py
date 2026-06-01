@@ -2,9 +2,10 @@ from fastapi import FastAPI, Header, HTTPException, File, Form, UploadFile
 import json
 import time
 import io
+import gc
 
 import torch
-from transformers import AutoProcessor, AutoModelForImageTextToText
+from transformers import AutoProcessor, AutoModelForImageTextToText, BitsAndBytesConfig
 from peft import PeftModel
 import traceback
 
@@ -35,10 +36,20 @@ def load_model():
     except Exception:
         processor = AutoProcessor.from_pretrained(config.BASE_MODEL_ID, **token_kwargs)
 
+    print("MODEL_DTYPE:", config.MODEL_DTYPE)
+    print("torch dtype:", utils.get_torch_dtype(config.MODEL_DTYPE))
+
     print("Loading base model...")
+    bnb_config = BitsAndBytesConfig(
+        load_in_4bit=True,
+        bnb_4bit_quant_type="nf4",
+        bnb_4bit_compute_dtype=torch.bfloat16,
+        bnb_4bit_use_double_quant=True,
+    )
+
     base_model = AutoModelForImageTextToText.from_pretrained(
         config.BASE_MODEL_ID,
-        torch_dtype=utils.get_torch_dtype(config.MODEL_DTYPE),
+        quantization_config=bnb_config,
         device_map="auto",
         **token_kwargs,
     )
@@ -46,6 +57,8 @@ def load_model():
     print("Attaching fine-tuned adapter...")
     model = PeftModel.from_pretrained(base_model, config.FINETUNED_ADAPTER_DIR)
     model.eval()
+
+    print("first param dtype:", next(model.parameters()).dtype)
 
     if hasattr(model.config, "use_cache"):
         model.config.use_cache = True
@@ -57,43 +70,56 @@ def load_model():
 # run the fine-tuned model and return raw generated text
 def run_model(prompt: str, image_bytes: bytes | None = None) -> str:
     image = None
+    inputs = None
+    outputs = None
+    generated = None
 
-    if image_bytes:
-        image = Image.open(io.BytesIO(image_bytes)).convert("RGB")
+    try:
+        if image_bytes:
+            image = Image.open(io.BytesIO(image_bytes)).convert("RGB")
 
-    messages = build_messages(prompt, image)
+        messages = build_messages(prompt, image)
 
-    text = PROCESSOR.apply_chat_template(
-        messages,
-        tokenize=False,
-        add_generation_prompt=True,
-    )
-
-    if image is not None:
-        inputs = PROCESSOR(text=text, images=image, return_tensors="pt").to(MODEL.device)
-    else:
-        inputs = PROCESSOR(text=text, return_tensors="pt").to(MODEL.device)
-
-    with torch.inference_mode():
-        outputs = MODEL.generate(
-            **inputs,
-            max_new_tokens=config.MAX_NEW_TOKENS,
-            do_sample=False,
-            pad_token_id=PROCESSOR.tokenizer.eos_token_id,
+        text = PROCESSOR.apply_chat_template(
+            messages,
+            tokenize=False,
+            add_generation_prompt=True,
         )
 
-    generated = outputs[0][inputs["input_ids"].shape[1]:]
+        if image is not None:
+            inputs = PROCESSOR(text=text, images=image, return_tensors="pt").to(MODEL.device)
+        else:
+            inputs = PROCESSOR(text=text, return_tensors="pt").to(MODEL.device)
 
-    result = PROCESSOR.decode(
-        generated,
-        skip_special_tokens=True
-    ).strip()
+        with torch.inference_mode():
+            outputs = MODEL.generate(
+                **inputs,
+                max_new_tokens=config.MAX_NEW_TOKENS,
+                do_sample=False,
+                pad_token_id=PROCESSOR.tokenizer.eos_token_id,
+                use_cache=False,
+            )
 
-    if torch.cuda.is_available():
-        torch.cuda.empty_cache()
+        generated = outputs[0][inputs["input_ids"].shape[1]:]
 
-    return result
+        result = PROCESSOR.decode(
+            generated,
+            skip_special_tokens=True
+        ).strip()
 
+        return result
+
+    finally:
+        # remove request-level tensors
+        del image
+        del inputs
+        del outputs
+        del generated
+
+        gc.collect()
+
+        if torch.cuda.is_available():
+            torch.cuda.empty_cache()
 
 app = FastAPI() # create a FastAPI instance
 
@@ -101,13 +127,13 @@ experiment_logger = Experiment(
     file_name="results_finetuned.csv",
     output_dir=config.OUTPUT_DIR,
     experiment_name=config.EXPERIMENT_NAME,
-    model_name=config.MODEL_NAME,
+    model_name=config.FINETUNED_MODEL_NAME,
 )
 
 ######CREATE MODELS
-OCR_READER_KO = easyocr.Reader(['ko', 'en'], gpu=True)
-OCR_READER_JA = easyocr.Reader(['ja', 'en'], gpu=False)
-OCR_READER_HI = easyocr.Reader(['hi', 'en'], gpu=False)
+#OCR_READER_KO = easyocr.Reader(['ko', 'en'], gpu=False)
+#OCR_READER_JA = easyocr.Reader(['ja', 'en'], gpu=False)
+#OCR_READER_HI = easyocr.Reader(['hi', 'en'], gpu=False)
 PROCESSOR, MODEL = load_model()
 
 @app.post("/next-action")
@@ -130,13 +156,16 @@ async def ask_next_action(
     if len(request.userGoal) > 150:
         raise HTTPException(status_code=400, detail="Goal is too long")
 
+
+
+
     image_bytes = None
     if image is not None:
         image_bytes = await image.read()
 
     start_time = time.perf_counter()
 
-    visible_uies = utils.collect_uies(request)
+    visible_uies = utils.collect_uies(request)[:30]
 
     # prompt = build_prompt(request.userGoal, visible_uies, request.imgBase64)
     prompt = build_prompt(request.userGoal, visible_uies)

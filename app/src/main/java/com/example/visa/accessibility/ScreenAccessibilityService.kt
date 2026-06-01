@@ -53,7 +53,7 @@ class ScreenAccessibilityService : AccessibilityService() {
         return elements
     }
 
-    private fun collectUIElements(node:AccessibilityNodeInfo?, elements: MutableList<UIElement>) {
+    private fun collectUIElements(node: AccessibilityNodeInfo?, elements: MutableList<UIElement>) {
         if (node == null) return
 
         val text = node.text?.toString()
@@ -63,14 +63,28 @@ class ScreenAccessibilityService : AccessibilityService() {
         val rect = Rect()
         node.getBoundsInScreen(rect)
 
-        val hasUsefulText = !text.isNullOrBlank() || !contentDesc.isNullOrBlank()
-        val isUsefulActionTarget = node.isClickable || node.isEditable
+        if (!isValidBounds(rect)) return
 
-        // only include useful elements
-        if (hasUsefulText || isUsefulActionTarget) {
+        val isActionTarget = node.isClickable || node.isEditable
+
+        // check if this node contains another clickable/editable child
+        // if yes, do not group this parent. Let child action targets be collected separately
+        //var hasActionableChild = false
+        //for (i in 0 until node.childCount) {
+        //    val child = node.getChild(i)
+
+        //    if (child != null && (child.isClickable || child.isEditable)) {
+        //        hasActionableChild = true
+        //        break
+        //    }
+        //}
+
+        if (isActionTarget) {
+            val childText = collectTextFromSubtree(node)
+
             elements.add(
                 UIElement(
-                    text = text,
+                    text = childText.ifBlank { text },
                     contentDescription = contentDesc,
                     className = className,
                     packageName = packageName,
@@ -79,11 +93,81 @@ class ScreenAccessibilityService : AccessibilityService() {
                     bounds = rect.toShortString()
                 )
             )
+
+            // child TextViews are merged into the clickable/editable parent, so skip them here
+            return
         }
+
+        // hasUsefulText = !text.isNullOrBlank() || !contentDesc.isNullOrBlank()
+        //if (hasUsefulText) {
+        //    elements.add(
+        //        UIElement(
+        //            text = text,
+        //            contentDescription = contentDesc,
+        //            className = className,
+        //            packageName = packageName,
+        //            clickable = false,
+        //            editable = false,
+        //            bounds = rect.toShortString()
+        //        )
+        //    )
+        //}
 
         for (i in 0 until node.childCount) {
             collectUIElements(node.getChild(i), elements)
         }
+    }
+
+    private fun collectTextFromSubtree(node: AccessibilityNodeInfo?): String {
+        if (node == null) return ""
+
+        val texts = mutableListOf<String>()
+
+        fun dfs(n: AccessibilityNodeInfo?) {
+            if (n == null) return
+
+            var t = n.text?.toString()?.trim() ?: ""
+            var cd = n.contentDescription?.toString()?.trim() ?: ""
+
+            // simple normalize: collapse multiple spaces/newlines into one space
+            t = t.replace(Regex("\\s+"), " ")
+            cd = cd.replace(Regex("\\s+"), " ")
+
+            // limit each child text length 60 for each
+            if (t.length > 60) {
+                t = t.take(60) + "..."
+            }
+
+            if (cd.length > 60) {
+                cd = cd.take(60) + "..."
+            }
+
+            if (t.isNotBlank()) texts.add(t)
+            if (cd.isNotBlank() && cd != t) texts.add(cd)
+
+            for (i in 0 until n.childCount) {
+                dfs(n.getChild(i))
+            }
+        }
+
+        dfs(node)
+
+        return texts
+            .distinct()
+            .joinToString(" | ")
+            .take(250) // total text limit 250
+    }
+
+    private fun isValidBounds(rect: Rect): Boolean {
+        if (rect.width() <= 2 || rect.height() <= 2) return false
+
+        val screenWidth = resources.displayMetrics.widthPixels
+        val screenHeight = resources.displayMetrics.heightPixels
+
+        if (rect.right <= 0 || rect.left >= screenWidth) return false
+        if (rect.bottom <= 0 || rect.top >= screenHeight + 300) return false
+
+        return true
     }
 
     // function which runs next action based on vlm result
@@ -335,7 +419,7 @@ class ScreenAccessibilityService : AccessibilityService() {
                                 return
                             }
 
-                            val resizedBitmap = bitmap.scale(720, 1600)
+                            val resizedBitmap = resizeBitmapKeepRatio(bitmap, maxLongSide = 960)
                             val imageBytes = bitmapToJpegBytes(resizedBitmap, quality = 75)
 
                             continuation.resume(imageBytes)
@@ -359,6 +443,21 @@ class ScreenAccessibilityService : AccessibilityService() {
         return outputStream.toByteArray()
     }
 
+    private fun resizeBitmapKeepRatio(bitmap: Bitmap, maxLongSide: Int = 960): Bitmap {
+        val width = bitmap.width
+        val height = bitmap.height
+
+        val longestSide = maxOf(width, height)
+
+        if (longestSide <= maxLongSide) { return bitmap }
+
+        val scale = maxLongSide.toFloat() / longestSide
+
+        val newWidth = (width * scale).toInt()
+        val newHeight = (height * scale).toInt()
+
+        return Bitmap.createScaledBitmap(bitmap, newWidth, newHeight, true)
+    }
 
 
 }

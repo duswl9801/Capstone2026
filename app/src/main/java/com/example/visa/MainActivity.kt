@@ -11,6 +11,7 @@ import androidx.cardview.widget.CardView
 import com.example.visa.overlay.ScreenOverlayService
 import android.provider.Settings
 import android.net.Uri
+import android.view.View
 import android.widget.ImageView
 import com.example.visa.dataclasses.AssistMode
 import com.example.visa.dataclasses.Assistant
@@ -29,9 +30,23 @@ class MainActivity : AppCompatActivity() {
 
         enableEdgeToEdge()
         setContentView(R.layout.activity_main)
+
+        val main = findViewById<View>(R.id.main)
+
+        val originalLeft = main.paddingLeft
+        val originalTop = main.paddingTop
+        val originalRight = main.paddingRight
+        val originalBottom = main.paddingBottom
+
+
         ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main)) { v, insets ->
             val systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
-            v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom)
+            v.setPadding(
+                originalLeft + systemBars.left,
+                originalTop + systemBars.top,
+                originalRight + systemBars.right,
+                originalBottom + systemBars.bottom
+            )
             insets
         }
 

@@ -383,13 +383,17 @@ class ScreenOverlayService : Service() {
         btnDoAction.setOnClickListener {
             Log.d("ScreenAssistant", "Execute clicked")
 
-            runNextStep()
-
-            // clear
+            // clear overlays first
             removeOverlayView(speechView)
             speechView = null
+
             removeOverlayView(targetBoxView)
             targetBoxView = null
+
+            // wait a little so the underlying app can receive the gesture cleanly
+            handler.postDelayed({
+                runNextStep()
+            }, 50L)
         }
 
         btnDoMyself.setOnClickListener {

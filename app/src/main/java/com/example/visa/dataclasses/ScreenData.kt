@@ -14,6 +14,6 @@ data class UIElement(
 data class ScreenContext(
     val uies: List<UIElement>,
     val texts: OCRResult,
-    val userGoal: String?,
-    val imgBase64: String
+    val userGoal: String?
+    //val imgBytes: ByteArray?   -> bytes should be separated
 )

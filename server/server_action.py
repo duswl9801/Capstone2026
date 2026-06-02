@@ -3,23 +3,21 @@ import json
 import time
 import io
 import gc
-
+import re
 import torch
 from transformers import AutoProcessor, AutoModelForImageTextToText, BitsAndBytesConfig
 from peft import PeftModel
 import traceback
-
-import base64
-import cv2
-import numpy as np
-import easyocr
 from PIL import Image
 
 from Experiment import Experiment
 from schemas import *
 import config
+import resolver
 import utils
 from prompt import build_prompt, build_messages
+
+app = FastAPI()
 
 def load_model():
     if config.HF_TOKEN:
@@ -121,19 +119,59 @@ def run_model(prompt: str, image_bytes: bytes | None = None) -> str:
         if torch.cuda.is_available():
             torch.cuda.empty_cache()
 
-app = FastAPI() # create a FastAPI instance
+def parse_model_response(model_response: str) -> dict:
+    """
+    Parse model output safely.
+
+    If the model output is invalid JSON, do not run fallback parsing.
+    Return ACTION_NONE so Android will not execute a random action.
+    """
+    try:
+        parsed = json.loads(model_response)
+    except json.JSONDecodeError:
+        print("invalid model response. raw response:", model_response)
+        return {
+            "action": "ACTION_NONE",
+            "target_label": "",
+            "input_text": "",
+            "rawResponse": model_response,
+        }
+
+    if not isinstance(parsed, dict):
+        print("invalid model response type. parsed:", parsed)
+        return {
+            "action": "ACTION_NONE",
+            "target_label": "",
+            "input_text": "",
+            "rawResponse": model_response,
+        }
+
+    action = (
+        parsed.get("action")
+        or parsed.get("action_label")
+        or parsed.get("action_name")
+        or parsed.get("actionName")
+        or ""
+    )
+
+    if not str(action).strip():
+        print("invalid model response: missing action. parsed:", parsed)
+        return {
+            "action": "ACTION_NONE",
+            "target_label": "",
+            "input_text": "",
+            "rawResponse": model_response,
+        }
+
+    return parsed
 
 experiment_logger = Experiment(
-    file_name="results_finetuned.csv",
+    file_name="server_action.csv",
     output_dir=config.OUTPUT_DIR,
     experiment_name=config.EXPERIMENT_NAME,
     model_name=config.FINETUNED_MODEL_NAME,
 )
 
-######CREATE MODELS
-#OCR_READER_KO = easyocr.Reader(['ko', 'en'], gpu=False)
-#OCR_READER_JA = easyocr.Reader(['ja', 'en'], gpu=False)
-#OCR_READER_HI = easyocr.Reader(['hi', 'en'], gpu=False)
 PROCESSOR, MODEL = load_model()
 
 @app.post("/next-action")
@@ -176,39 +214,28 @@ async def ask_next_action(
             detail=f"Model inference error: {str(e)}"
         )
 
-    try:
-        action_json = json.loads(model_response)
-    except json.JSONDecodeError:
-        print("json decode error...")
-        action_json = {
-            "action": "",
-            "targetText": "",
-            "targetContentDescription": "",
-            "targetClassName": "",
-            "inputText": "",
-            "rawResponse": model_response
-        }
+    action_json = parse_model_response(model_response)
 
-    # align the model output with the actual UI elements values
-    target_label = (action_json.get("targetText") or action_json.get("targetContentDescription"))
-    target = utils.find_ui(target_label, request.uies)
+    if action_json.get("action") == "ACTION_NONE":
+        fallback_action, fallback_target_label, fallback_input_text, fallback_target = resolver.fallback_from_goal(
+            action="ACTION_NONE",
+            target_label="",
+            input_text="",
+            request=request,
+        )
 
-    if target:
-        action_json = {
-            "action": action_json.get("action", ""),
-            "targetText": target.text or "",
-            "targetContentDescription": target.contentDescription or "",
-            "targetClassName": target.className or "",
-            "inputText": action_json.get("inputText", "")
-        }
+        if fallback_target is not None:
+            action_json = {
+                "action": fallback_action,
+                "targetText": fallback_target.text or "",
+                "targetContentDescription": fallback_target.contentDescription or "",
+                "targetClassName": fallback_target.className or "",
+                "inputText": fallback_input_text or "",
+            }
+        else:
+            action_json = resolver.resolve_action(action_json, request)
     else:
-        action_json = {
-            "action": action_json.get("action", ""),
-            "targetText": action_json.get("targetText", ""),
-            "targetContentDescription": action_json.get("targetContentDescription", ""),
-            "targetClassName": action_json.get("targetClassName", ""),
-            "inputText": action_json.get("inputText", "")
-        }
+        action_json = resolver.resolve_action(action_json, request)
 
     print(f"user goal: {request.userGoal}")
     print(f"has image: {image_bytes is not None}")
@@ -217,73 +244,21 @@ async def ask_next_action(
 
     latency = round(time.perf_counter() - start_time, 2)
 
+    target_text = action_json.get("targetText", "")
+    target_desc = action_json.get("targetContentDescription", "")
+
+    if target_desc and target_desc != target_text:
+        logged_target = f"{target_text} | {target_desc}"
+    else:
+        logged_target = target_text
+
     experiment_logger.write_csv(
         latency=latency,
         user_goal=request.userGoal,
         raw_response=model_response,
         action=action_json.get("action", ""),
-        target_text=action_json.get("targetText", ""),
+        target_text=logged_target,
         input_text=action_json.get("inputText", ""),
     )
 
     return {"response": json.dumps(action_json, ensure_ascii=False)}
-
-@app.post("/text-detection")
-async def detect_text(
-        image: UploadFile = File(...),
-        language: str = Form("ko"),
-        authorization: str | None = Header(default=None)
-):
-    expected = f"Bearer {config.API_TOKEN}"
-
-    if authorization != expected:
-        raise HTTPException(status_code=401, detail="Unauthorized")
-
-    if language == "hi":
-        ocr_reader = OCR_READER_HI
-    elif language == "ja":
-        ocr_reader = OCR_READER_JA
-    else:
-        ocr_reader = OCR_READER_KO
-
-    start_time = time.perf_counter()
-
-    try:
-        img_bytes = await image.read()
-        np_arr = np.frombuffer(img_bytes, np.uint8)
-        cv_image = cv2.imdecode(np_arr, cv2.IMREAD_COLOR)
-
-        if cv_image is None:
-            raise HTTPException(status_code=400, detail="Invalid image")
-
-    except Exception as e:
-        raise HTTPException(status_code=400, detail=f"Image decode error: {str(e)}")
-
-    try:
-        results = ocr_reader.readtext(cv_image)
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=f"OCR error: {str(e)}")
-
-    texts = []
-
-    for box, text, confidence in results:
-        xs = [point[0] for point in box]
-        ys = [point[1] for point in box]
-
-        texts.append({
-            "text": text,
-            "confidence": float(confidence),
-            "box": {
-                "x1": int(min(xs)),
-                "y1": int(min(ys)),
-                "x2": int(max(xs)),
-                "y2": int(max(ys))
-            }
-        })
-
-    latency = round(time.perf_counter() - start_time, 2)
-
-    print(f"OCR latency: {latency}s")
-    print(f"Detected texts: {texts}")
-
-    return {"texts": texts}

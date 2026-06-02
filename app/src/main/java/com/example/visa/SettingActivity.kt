@@ -19,9 +19,22 @@ class SettingActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         setContentView(R.layout.activity_setting)
+
+        val main = findViewById<View>(R.id.setting)
+
+        val originalLeft = main.paddingLeft
+        val originalTop = main.paddingTop
+        val originalRight = main.paddingRight
+        val originalBottom = main.paddingBottom
+
         ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.setting)) { v, insets ->
             val systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
-            v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom)
+            v.setPadding(
+                originalLeft + systemBars.left,
+                originalTop + systemBars.top,
+                originalRight + systemBars.right,
+                originalBottom + systemBars.bottom
+            )
             insets
         }
 

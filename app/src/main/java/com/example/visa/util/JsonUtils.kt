@@ -40,7 +40,6 @@ object JsonUtils {
             put("uies", uiElementsToJsonArray(screenContext.uies))
             put("texts", ocrResultToJson(screenContext.texts))
             put("userGoal", screenContext.userGoal)
-            put("imgBase64", screenContext.imgBase64)
         }
     }
 

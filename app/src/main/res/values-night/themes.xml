@@ -1,6 +1,7 @@
 <resources xmlns:tools="http://schemas.android.com/tools">
     <!-- Base application theme. -->
     <style name="Theme.VisA" parent="Theme.MaterialComponents.DayNight.NoActionBar">
+
         <!-- App colors -->
         <item name="visaBackgroundColor">@color/visa_background</item>
         <item name="visaEmptyColor">@color/visa_empty</item>
@@ -39,9 +40,10 @@
         <item name="visaHighlightTextColor">@color/visa_highlight_text</item>
         <item name="visaHighlightIconColor">@color/visa_highlight_icon</item>
 
+        <item name="visaTextGreetingColor">@color/visa_greeting</item>
+        <item name="visaTextExitColor">@color/visa_exit</item>
+
         <item name="visaGuideBackground">@color/visa_guide_background</item>
-
-
 
         <!-- Font -->
         <item name="android:fontFamily">@font/dmsans_extralight</item>

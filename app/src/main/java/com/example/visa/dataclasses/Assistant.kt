@@ -1,6 +1,8 @@
 package com.example.visa.dataclasses
 
+import android.os.Build
 import android.util.Log
+import androidx.annotation.RequiresApi
 
 import com.example.visa.accessibility.ScreenAccessibilityService
 import com.example.visa.AppContainer
@@ -52,6 +54,7 @@ class Assistant {
         // call TTSManager
     }
 
+    @RequiresApi(Build.VERSION_CODES.R)
     suspend fun requestNextAction(userGoal: String?): RecommendedAction? {
         // TODO: consider screenshot capture, OCR from screen
 
@@ -66,20 +69,28 @@ class Assistant {
         val uiElements = accessibilityService.getCurrentUIElements()
         Log.d("ScreenAssistant", "UI element count: ${uiElements.size}")
 
+        val imageBytes = accessibilityService.takeScreenshotBytes()
+
+        if (imageBytes == null) {
+            Log.d("ScreenAssistant", "Screenshot failed. Continue with text only.")
+        } else {
+            Log.d("ScreenAssistant", "Screenshot size: ${imageBytes.size} bytes")
+        }
+
+
         // 1. prepare screen data
         val screenContext = ScreenContext(
             uies = uiElements,
             texts = OCRResult(emptyList()),
-            userGoal = userGoal,
-            imgBase64 = ""
+            userGoal = userGoal
         )
 
         return try {
-            Log.d("ScreenAssistant", "Sending ScreenContext to VLM...")
+            Log.d("VLM Processing", "Sending ScreenContext to VLM...")
 
             // 2. send screen data to VLM/server
-            val result = AppContainer.visualAnalyzer.getNextAction(screenContext) // result is JSON file
-            Log.d("ScreenAssistant", "VLM result: $result")
+            val result = AppContainer.visualAnalyzer.getNextAction(screenContext, imageBytes=imageBytes) // result is JSON file
+            Log.d("VLM Processing", "VLM result: $result")
 
             // 3. parse JSON to RecommendedAction and return it
             val recommendedAction = JsonUtils.recommendedActionFromJson(result.toString())

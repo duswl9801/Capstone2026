@@ -4,7 +4,7 @@
 
     <!-- Main screen -->
     <string name="greeting">좋은 아침이에요</string>
-    <string name="main_question">무엇을&#10;도와드릴까요?</string>
+    <string name="main_question">무엇을 도와드릴까요?</string>
 
     <string name="screen_mode_label">화면</string>
     <string name="screen_mode_title">화면 내용을&#10;읽어드릴게요</string>
@@ -19,13 +19,13 @@
     <!-- Guide screen -->
     <string name="guide_title">화면 도우미 사용 방법</string>
     <string name="guide_body">
-        1. 도움이 필요할 때 버블을 탭하세요&#10;
-        2. 원하는 목표를 입력한 뒤 확인를 누르세요.&#10;
-        3. 도우미가 화면을 읽고 다음 대상 위치를 강조 표시합니다.&#10;
-        4. 실행을 원하면 실행하기를 탭하세요.&#10;
+        1. 도움이 필요할 때 버블을 탭하세요\n
+        2. 원하는 목표를 입력한 뒤 확인를 누르세요.\n
+        3. 도우미가 화면을 읽고 다음 대상 위치를 강조 표시합니다.\n
+        4. 실행을 원하면 실행하기를 탭하세요.\n
         5. 도우미 버튼을 길게 누르면 어시스턴트가 종료됩니다.</string>
     <string name="guide_note">
-        도우미는 사용자의 승인 없이 동작하지 않습니다.&#10;
+        도우미는 사용자의 승인 없이 동작하지 않습니다.\n
         이 가이드를 다시 보려면 ? 버튼을 누르세요.
     </string>
     <string name="guide_go_back">뒤로 가기</string>

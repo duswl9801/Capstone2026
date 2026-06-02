@@ -79,7 +79,7 @@
         android:layout_marginBottom="12dp"
         app:cardCornerRadius="24dp"
         app:cardElevation="0dp"
-        app:cardBackgroundColor="?attr/visaDarkColor">
+        app:cardBackgroundColor="?attr/visaCardDarkColor">
 
         <FrameLayout
             android:layout_width="match_parent"
@@ -112,7 +112,7 @@
                     android:layout_height="wrap_content"
                     android:text="@string/screen_mode_label"
                     android:textSize="20sp"
-                    android:textColor="#7F7F7F"
+                    android:textColor="?attr/visaTextScreenColorOne"
                     android:letterSpacing="0.1"
                     android:layout_marginBottom="6dp" />
 
@@ -121,7 +121,7 @@
                     android:layout_height="wrap_content"
                     android:text="@string/screen_mode_title"
                     android:textSize="50sp"
-                    android:textColor="#FFFFFF"
+                    android:textColor="?attr/visaTextScreenColorTwo"
                     android:singleLine="false"
                     android:maxLines="2"/>
 
@@ -131,7 +131,7 @@
                     android:layout_height="wrap_content"
                     android:text="@string/screen_mode_subtitle"
                     android:textSize="18sp"
-                    android:textColor="#666666"
+                    android:textColor="?attr/visaTextScreenColorThree"
                     android:layout_marginTop="6dp" />
             </LinearLayout>
         </FrameLayout>
@@ -146,7 +146,7 @@
         android:layout_marginBottom="12dp"
         app:cardCornerRadius="24dp"
         app:cardElevation="0dp"
-        app:cardBackgroundColor="#FFFFFF">
+        app:cardBackgroundColor="?attr/visaCardLightColor">
 
         <FrameLayout
             android:layout_width="match_parent"
@@ -175,7 +175,7 @@
                     android:layout_height="wrap_content"
                     android:text="@string/camera_mode_label"
                     android:textSize="20sp"
-                    android:textColor="#AAAAAA"
+                    android:textColor="?attr/visaTextCameraColorOne"
                     android:letterSpacing="0.1"
                     android:layout_marginBottom="6dp" />
 
@@ -184,7 +184,7 @@
                     android:layout_height="wrap_content"
                     android:text="@string/camera_mode_title"
                     android:textSize="50sp"
-                    android:textColor="#111111"
+                    android:textColor="?attr/visaTextCameraColorTwo"
                     android:singleLine="false"
                     android:maxLines="2"/>
 
@@ -193,7 +193,7 @@
                     android:layout_height="wrap_content"
                     android:text="@string/camera_mode_subtitle"
                     android:textSize="18sp"
-                    android:textColor="#999999"
+                    android:textColor="?attr/visaTextCameraColorThree"
                     android:layout_marginTop="6dp" />
             </LinearLayout>
         </FrameLayout>
@@ -207,7 +207,7 @@
         android:layout_marginBottom="8dp"
         app:cardCornerRadius="16dp"
         app:cardElevation="0dp"
-        app:cardBackgroundColor="#EFEFEF">
+        app:cardBackgroundColor="?attr/visaCardExitColor">
 
         <LinearLayout
             android:layout_width="match_parent"
@@ -229,7 +229,7 @@
                 android:text="@string/exit_app"
                 android:textSize="16sp"
                 android:textStyle="bold"
-                android:textColor="#5F5E5A" />
+                android:textColor="?attr/visaTextExitColor" />
         </LinearLayout>
     </androidx.cardview.widget.CardView>
 

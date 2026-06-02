@@ -6,7 +6,7 @@
 
     <path
         android:fillColor="#00000000"
-        android:strokeColor="#111111"
+        android:strokeColor="?attr/visaIconMainStrokeColor"
         android:strokeWidth="2"
         android:strokeLineCap="round"
         android:strokeLineJoin="round"

@@ -9,7 +9,7 @@ import androidx.core.view.WindowInsetsCompat
 import androidx.appcompat.app.AppCompatDelegate
 import androidx.core.os.LocaleListCompat
 
-class SettingActivity : AppCompatActivity() {
+class SettingActivity : BaseActivity() {
 
     private lateinit var cardLanguage: View
     private lateinit var cardVoiceMode: View
@@ -66,8 +66,25 @@ class SettingActivity : AppCompatActivity() {
 
         cardTheme.setOnClickListener {
             // later: open theme settings
+            toggleTheme()
+        }
+    }
+
+    private fun toggleTheme() {
+        val prefs = getSharedPreferences("app_prefs", MODE_PRIVATE)
+        val currentTheme = prefs.getString("theme", "default")
+
+        val nextTheme = if (currentTheme == "crazy") {
+            "default"
+        } else {
+            "crazy"
         }
 
+        prefs.edit()
+            .putString("theme", nextTheme)
+            .apply()
 
+        recreate()
     }
+
 }

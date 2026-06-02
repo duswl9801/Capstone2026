@@ -37,7 +37,7 @@ import com.example.visa.overlay.HighlightOverlayView
 import com.example.visa.util.JsonUtils
 import com.example.visa.util.Utils
 
-class CameraActivity : AppCompatActivity() {
+class CameraActivity : BaseActivity() {
 
     private lateinit var analyzer: VisualAnalyzer
 

@@ -35,7 +35,8 @@
             android:layout_marginStart="12dp"
             android:text="@string/back_to_menu"
             android:textSize="25sp"
-            android:letterSpacing="0.05"/>
+            android:letterSpacing="0.05"
+            android:textColor="?attr/visaDarkColor"/>
     </LinearLayout>
 
     <!-- Title -->
@@ -46,7 +47,7 @@
         android:layout_marginTop="30dp"
         android:text="@string/setting_title"
         android:textSize="55sp"
-        android:textColor="?attr/visaDarkColor"
+        android:textColor="?attr/visaTextSettingColor"
         android:layout_marginBottom="30dp" />
 
     <ScrollView
@@ -69,7 +70,7 @@
                 android:layout_marginBottom="20dp"
                 app:cardCornerRadius="22dp"
                 app:cardElevation="0dp"
-                app:cardBackgroundColor="?attr/visaDarkColor">
+                app:cardBackgroundColor="?attr/visaTextDarkSoftColor">
 
                 <FrameLayout
                     android:layout_width="match_parent"
@@ -249,6 +250,16 @@
 
                 </FrameLayout>
             </androidx.cardview.widget.CardView>
+
+            <TextView
+                android:id="@+id/txtVersion"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="10dp"
+                android:text="VisA Screen Assistant v0.1 · Capstone Prototype\nCreated by Sunyoung Ro &amp; Sidraa Azeem"
+                android:textSize="15sp"
+                android:textColor="?attr/visaTextSettingColor"
+                android:layout_marginBottom="30dp" />
 
         </LinearLayout>
     </ScrollView>

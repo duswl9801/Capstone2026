@@ -3,7 +3,7 @@
 
     <!-- Main screen -->
     <string name="greeting">GOOD MORNING</string>
-    <string name="main_question">What would you&#10;like to do?</string>
+    <string name="main_question">What would you like to do?</string>
 
     <string name="screen_mode_label">SCREEN</string>
     <string name="screen_mode_title">Read what\'s\non my screen</string>
@@ -17,8 +17,8 @@
 
     <!-- Guide screen -->
     <string name="guide_title">How to Use Screen Assitant</string>
-    <string name="guide_body">1. Tap the bubble when you need help.&#10;2. Enter your goal and tap Continue.&#10;3. The assistant reads the screen and highlights the next target.&#10;4. Tap Execute if you want the assistant to run the action.&#10;5. Press and hold the bubble to stop.</string>
-    <string name="guide_note">The assistant never acts without your approval.&#10;Tap ? to see this guide again.</string>
+    <string name="guide_body">1. Tap the bubble when you need help.\n2. Enter your goal and tap Continue.\n3. The assistant reads the screen and highlights the next target.\n4. Tap Execute if you want the assistant to run the action.\n5. Press and hold the bubble to stop.</string>
+    <string name="guide_note">The assistant never acts without your approval.\nTap ? to see this guide again.</string>
     <string name="guide_go_back">Go Back</string>
 
     <!-- Setting screen -->

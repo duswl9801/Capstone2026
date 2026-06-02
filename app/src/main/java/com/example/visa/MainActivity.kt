@@ -19,11 +19,13 @@ import com.example.visa.dataclasses.Assistant
 import com.example.visa.util.DialogUtils
 import com.example.visa.util.Utils
 
-class MainActivity : AppCompatActivity() {
+class MainActivity : BaseActivity() {
 
     private lateinit var assistant: Assistant
     private lateinit var cardScreen: CardView
     private lateinit var txtScreen: TextView
+
+    private var currentThemeName: String? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -32,6 +34,8 @@ class MainActivity : AppCompatActivity() {
         setContentView(R.layout.activity_main)
 
         val main = findViewById<View>(R.id.main)
+
+        currentThemeName = getSavedThemeName()
 
         val originalLeft = main.paddingLeft
         val originalTop = main.paddingTop
@@ -92,6 +96,15 @@ class MainActivity : AppCompatActivity() {
 
     override fun onResume() {
         super.onResume()
+
+        val savedThemeName = getSavedThemeName()
+
+        if (currentThemeName != null && currentThemeName != savedThemeName) {
+            currentThemeName = savedThemeName
+            recreate()
+            return
+        }
+
         updateScreenCardState()
     }
 
@@ -145,6 +158,11 @@ class MainActivity : AppCompatActivity() {
             cardScreen.alpha = 0.45f
             txtScreen.text = "Enable Screen Assistant first"
         }
+    }
+
+    private fun getSavedThemeName(): String {
+        val prefs = getSharedPreferences("app_prefs", MODE_PRIVATE)
+        return prefs.getString("theme", "default") ?: "default"
     }
 
 }

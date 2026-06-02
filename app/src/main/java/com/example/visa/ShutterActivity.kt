@@ -17,7 +17,7 @@ import com.example.visa.dataclasses.DetectedText
 import com.example.visa.dataclasses.OCRResult
 import com.example.visa.util.TTSManager
 
-class ShutterActivity : AppCompatActivity() {
+class ShutterActivity : BaseActivity() {
     // flat string built from the OCR JSON array, ready to be spoken
     private var ocrTexts: String = ""
     private var detectedTexts: List<DetectedText> = emptyList()

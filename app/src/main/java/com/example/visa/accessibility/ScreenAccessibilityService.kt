@@ -431,7 +431,7 @@ class ScreenAccessibilityService : AccessibilityService() {
                         "SET_TEXT direct editable: text=${directEditable.text}, class=${directEditable.className}, bounds=${directEditable.bounds}, inputText=$text"
                     )
 
-                    return setTextToCandidate(directEditable, text)
+                    return setTextToCandidate(directEditable, text, result)
                 }
 
                 Log.d("SetTextAction", "No editable candidate found. Trying to open input field first.")
@@ -458,14 +458,12 @@ class ScreenAccessibilityService : AccessibilityService() {
 
                 if (!tapSuccess) return false
 
-                // 3. wait for UI to change and keyboard/input field to open
-                Thread.sleep(250)
-
-                val newRoot = rootInActiveWindow
-
-                // 4. after tapping, prefer focused editable field
-                val focusedEditable = findFocusedEditableCandidate(newRoot)
-                val finalEditable = focusedEditable ?: findBestEditableCandidate(newRoot, result)
+                // 3. wait until editable field appears after opener tap
+                val finalEditable = waitForEditableCandidate(
+                    result = result,
+                    timeoutMs = 1200L,
+                    intervalMs = 150L
+                )
 
                 if (finalEditable == null) {
                     Log.d("SetTextAction", "SET_TEXT failed: no editable found after opener tap")
@@ -477,7 +475,7 @@ class ScreenAccessibilityService : AccessibilityService() {
                     "SET_TEXT final editable: text=${finalEditable.text}, class=${finalEditable.className}, bounds=${finalEditable.bounds}, inputText=$text"
                 )
 
-                setTextToCandidate(finalEditable, text)
+                setTextToCandidate(finalEditable, text, result)
             }
 
             "ACTION_SCROLL_UP" -> {
@@ -550,8 +548,79 @@ class ScreenAccessibilityService : AccessibilityService() {
         )
     }
 
-    private fun setTextToCandidate(candidate: ActionCandidate, text: String): Boolean {
-        candidate.node.performAction(AccessibilityNodeInfo.ACTION_FOCUS)
+    private fun waitForEditableCandidate(
+        result: RecommendedAction,
+        timeoutMs: Long = 1200L,
+        intervalMs: Long = 150L
+    ): ActionCandidate? {
+        val start = System.currentTimeMillis()
+
+        while (System.currentTimeMillis() - start < timeoutMs) {
+            val currentRoot = rootInActiveWindow
+
+            val candidates = collectActionCandidates(currentRoot).filter { it.editable }
+
+            Log.d(
+                "SetTextAction",
+                "waiting editable: count=${candidates.size}"
+            )
+
+            candidates.forEachIndexed { index, candidate ->
+                Log.d(
+                    "SetTextAction",
+                    "editable[$index]: focused=${candidate.node.isFocused}, text=${candidate.text}, desc=${candidate.contentDescription}, class=${candidate.className}, bounds=${candidate.bounds}"
+                )
+            }
+
+            val focused = candidates.firstOrNull { it.node.isFocused }
+            if (focused != null) return focused
+
+            val best = findBestEditableCandidate(currentRoot, result)
+            if (best != null) return best
+
+            Thread.sleep(intervalMs)
+        }
+
+        return null
+    }
+
+    private fun setTextToCandidate(
+        candidate: ActionCandidate,
+        text: String,
+        result: RecommendedAction
+    ): Boolean {
+        // click the input field first
+        val tapSuccess = tapRect(candidate.boundsRect)
+
+        Log.d("SetTextAction", "SET_TEXT field tap result: $tapSuccess")
+
+        if (!tapSuccess) {
+            return false
+        }
+
+        // wait for focus / keyboard / new accessibility tree
+        Thread.sleep(500)
+
+        // IMPORTANT: do not use old candidate.node first.
+        // Read current root again after tap.
+        val newRoot = rootInActiveWindow
+
+        val focusedEditable = findFocusedEditableCandidate(newRoot)
+        val bestEditable = findBestEditableCandidate(newRoot, result)
+
+        val targetNode = focusedEditable?.node ?: bestEditable?.node
+
+        if (targetNode == null) {
+            Log.d("SetTextAction", "SET_TEXT failed: no editable after field tap")
+            return false
+        }
+
+        Log.d(
+            "SetTextAction",
+            "SET_TEXT target after tap: text=${targetNode.text}, class=${targetNode.className}, focused=${targetNode.isFocused}, editable=${targetNode.isEditable}"
+        )
+
+        targetNode.performAction(AccessibilityNodeInfo.ACTION_FOCUS)
 
         val args = Bundle().apply {
             putCharSequence(
@@ -560,16 +629,16 @@ class ScreenAccessibilityService : AccessibilityService() {
             )
         }
 
-        val success = candidate.node.performAction(
+        val success = targetNode.performAction(
             AccessibilityNodeInfo.ACTION_SET_TEXT,
             args
         )
 
-        candidate.node.refresh()
+        targetNode.refresh()
 
         Log.d(
             "SetTextAction",
-            "SET_TEXT result: $success, afterText=${candidate.node.text}"
+            "SET_TEXT result: $success, afterText=${targetNode.text}"
         )
 
         return success

@@ -13,6 +13,7 @@
     <attr name="visaCardLightSoftColor" format="color" />
     <attr name="visaCardLightSoftOpaqueColor" format="color" />
     <attr name="visaCardSoftColor" format="color" />
+    <attr name="visaCardExitColor" format="color" />
 
     <!-- Text -->
     <attr name="visaTextDarkSoftColor" format="color" />
@@ -21,6 +22,14 @@
     <attr name="visaTextDarkColorTwo" format="color" />
     <attr name="visaTextLightColorOne" format="color" />
     <attr name="visaTextLightColorTwo" format="color" />
+
+    <attr name="visaTextScreenColorOne" format="color" />
+    <attr name="visaTextScreenColorTwo" format="color" />
+    <attr name="visaTextScreenColorThree" format="color" />
+
+    <attr name="visaTextCameraColorOne" format="color" />
+    <attr name="visaTextCameraColorTwo" format="color" />
+    <attr name="visaTextCameraColorThree" format="color" />
 
     <!-- Icon -->
     <attr name="visaIconMainStrokeColor" format="color" />
@@ -39,6 +48,7 @@
 
     <attr name="visaTextGreetingColor" format="color" />
     <attr name="visaTextExitColor" format="color" />
+    <attr name="visaTextSettingColor" format="color" />
 
     <attr name="visaGuideBackground" format="color" />
 

@@ -53,14 +53,60 @@
 
 
     <!-- CRAZY THEME -->
-    <style name="Theme.VisA.Crazy" parent="Theme.MaterialComponents.DayNight.NoActionBar">
-        <item name="visaBackgroundColor">@color/crazy_background</item>
-        <item name="visaDarkColor">@color/crazy_card_dark</item>
-        <item name="visaLightColor">@color/crazy_card_light</item>
-        <item name="visaHighlightIconColor">@color/crazy_highlight_icon</item>
+    <style name="Theme.VisA.Crazy" parent="Theme.VisA">
+        <!-- App colors -->
+        <item name="visaBackgroundColor">@color/crazy_visa_background</item>
+        <item name="visaEmptyColor">@color/crazy_visa_empty</item>
 
-        <item name="android:windowBackground">?attr/visaBackgroundColor</item>
-        <item name="colorPrimary">@color/crazy_card_dark</item>
+        <item name="visaDarkColor">@color/crazy_visa_dark</item>
+        <item name="visaLightColor">@color/crazy_visa_light</item>
+        <item name="visaSoftColor">@color/crazy_visa_soft</item>
+
+        <!-- Card -->
+        <item name="visaCardDarkColor">@color/crazy_visa_card_dark</item>
+        <item name="visaCardLightColor">@color/crazy_visa_card_light</item>
+        <item name="visaCardLightSoftColor">@color/crazy_visa_card_light_soft</item>
+        <item name="visaCardLightSoftOpaqueColor">@color/crazy_visa_card_light_soft_opaque</item>
+        <item name="visaCardSoftColor">@color/crazy_visa_card_soft</item>
+
+        <!-- Text -->
+        <item name="visaTextDarkSoftColor">@color/crazy_visa_text_dark_soft</item>
+        <item name="visaTextDarkSoftHintColor">@color/crazy_visa_text_dark_soft_hint</item>
+        <item name="visaTextDarkColorOne">@color/crazy_visa_text_dark_one</item>
+        <item name="visaTextDarkColorTwo">@color/crazy_visa_text_dark_two</item>
+        <item name="visaTextLightColorOne">@color/crazy_visa_text_light_one</item>
+        <item name="visaTextLightColorTwo">@color/crazy_visa_text_light_two</item>
+
+        <item name="visaTextScreenColorOne">@color/crazy_visa_text_screen_one</item>
+        <item name="visaTextScreenColorTwo">@color/crazy_visa_text_screen_two</item>
+        <item name="visaTextScreenColorThree">@color/crazy_visa_text_screen_three</item>
+
+        <item name="visaTextCameraColorOne">@color/crazy_visa_text_camera_one</item>
+        <item name="visaTextCameraColorTwo">@color/crazy_visa_text_camera_two</item>
+        <item name="visaTextCameraColorThree">@color/crazy_visa_text_camera_three</item>
+
+        <!-- Icon -->
+        <item name="visaIconMainStrokeColor">@color/crazy_visa_icon_main_stroke</item>
+        <item name="visaIconDarkColor">@color/crazy_visa_icon_dark</item>
+        <item name="visaIconLightColor">@color/crazy_visa_icon_light</item>
+        <item name="visaIconDarkBackgroundColor">@color/crazy_visa_icon_dark_background</item>
+        <item name="visaIconLightBackgroundColor">@color/crazy_visa_icon_light_background</item>
+
+        <!-- Button -->
+        <item name="visaBtnMainColor">@color/crazy_visa_btn_main</item>
+        <item name="visaBtnTextColor">@color/crazy_visa_btn_main_text</item>
+
+        <!-- Highlight -->
+        <item name="visaHighlightTextColor">@color/crazy_visa_highlight_text</item>
+        <item name="visaHighlightIconColor">@color/crazy_visa_highlight_icon</item>
+
+        <item name="visaTextGreetingColor">@color/crazy_visa_greeting</item>
+        <item name="visaTextExitColor">@color/crazy_visa_exit</item>
+        <item name="visaTextSettingColor">@color/crazy_visa_setting</item>
+
+        <item name="visaGuideBackground">@color/crazy_visa_guide_background</item>
+
+        <!-- Customize your theme here. -->
     </style>
 
 </resources>

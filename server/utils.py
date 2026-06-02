@@ -4,19 +4,34 @@ from typing import List
 from schemas import UIElement, screenContextRequest
 from PIL import Image
 import base64
+import re
 
 
 def clean_text(text: str | None) -> str:
     if not text:
         return ""
 
-    return (
+    text = (
         text.replace("\u2068", "")
-            .replace("\u2069", "")
-            .replace("\u200e", "")
-            .replace("\u200f", "")
-            .lower()
+        .replace("\u2069", "")
+        .replace("\u200e", "")
+        .replace("\u200f", "")
+        .replace("\u200b", "")
+        .replace("\u200c", "")
+        .replace("\u200d", "")
+        .lower()
     )
+
+    # collapse newlines, tabs, and repeated spaces into one space
+    text = re.sub(r"\s+", " ", text)
+
+    # collapse repeated comma separators
+    text = re.sub(r"(,\s*){2,}", ", ", text)
+
+    # remove leading/trailing comma and spaces
+    text = text.strip(" ,")
+
+    return text.strip()
 
 def collect_uies(request: screenContextRequest) -> str:
     lines = []
@@ -34,7 +49,7 @@ def collect_uies(request: screenContextRequest) -> str:
         lines.append(
             f"[{index}] "
             f"text='{text}' "
-            f"contentDescription='{desc}' "
+            #f"contentDescription='{desc}' "
             f"type='{kind}' "
         )
 

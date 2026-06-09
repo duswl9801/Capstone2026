@@ -1,5 +1,12 @@
 package com.example.visa.overlay
 
+import android.Manifest
+import android.content.pm.PackageManager
+import android.speech.RecognitionListener
+import android.speech.RecognizerIntent
+import android.speech.SpeechRecognizer
+import java.util.Locale
+
 import android.app.Service
 import android.content.Intent
 import android.graphics.PixelFormat
@@ -28,6 +35,7 @@ import kotlinx.coroutines.cancel
 import android.widget.TextView
 import android.graphics.drawable.GradientDrawable
 import android.os.Build
+import android.os.Bundle
 import android.view.ContextThemeWrapper
 
 import com.example.visa.AppContainer
@@ -37,6 +45,7 @@ import com.example.visa.util.Utils.dp
 import android.util.Log
 import android.view.View
 import android.widget.ImageView
+import android.widget.LinearLayout
 import androidx.annotation.RequiresApi
 import androidx.compose.runtime.Immutable
 import androidx.core.content.ContextCompat
@@ -63,6 +72,11 @@ class ScreenOverlayService : Service() {
     private lateinit var user: User
 
     private var nextAction: RecommendedAction? = null
+
+    private var isListening = false
+    private var shouldRunAfterVoiceStop = false
+    private var voiceGoalText = ""
+    private var speechRecognizer: SpeechRecognizer? = null
 
     // custom views
     private lateinit var edgeGlowView: EdgeGlowView
@@ -127,6 +141,8 @@ class ScreenOverlayService : Service() {
         resultView = null
         removeOverlayView(loadingView)
         loadingView = null
+        speechRecognizer?.destroy()
+        speechRecognizer = null
     }
 
     override fun onBind(intent: Intent?): IBinder? = null
@@ -255,6 +271,173 @@ class ScreenOverlayService : Service() {
 
     @RequiresApi(Build.VERSION_CODES.R)
     private fun handleBubbleClick()  {
+        if (isVoiceModeEnabled()) {
+            handleVoiceBubbleClick()
+        } else {
+            showGoalDialog()
+        }
+    }
+
+    private fun isVoiceModeEnabled(): Boolean {
+        val prefs = getSharedPreferences("app_prefs", MODE_PRIVATE)
+        return prefs.getBoolean("voice_mode", false)
+    }
+
+    private fun handleVoiceBubbleClick() {
+        if (!isListening) {
+            startVoiceInput()
+        } else {
+            stopVoiceInputAndRun()
+        }
+    }
+
+    private fun startVoiceInput() {
+        if (ContextCompat.checkSelfPermission(this, Manifest.permission.RECORD_AUDIO)
+            != PackageManager.PERMISSION_GRANTED
+        ) {
+            Toast.makeText(this, "Microphone permission is required.", Toast.LENGTH_SHORT).show()
+            return
+        }
+
+        if (!SpeechRecognizer.isRecognitionAvailable(this)) {
+            Toast.makeText(this, "Speech recognition is not available.", Toast.LENGTH_SHORT).show()
+            return
+        }
+
+        voiceGoalText = ""
+        shouldRunAfterVoiceStop = false
+        isListening = true
+
+        setBubbleIcon(R.drawable.ic_voice)
+
+        speechRecognizer?.destroy()
+        speechRecognizer = SpeechRecognizer.createSpeechRecognizer(this)
+
+        speechRecognizer?.setRecognitionListener(object : RecognitionListener {
+            override fun onReadyForSpeech(params: Bundle?) {
+                Log.d("VoiceInput", "ready for speech")
+            }
+
+            override fun onBeginningOfSpeech() {
+                Log.d("VoiceInput", "speech started")
+            }
+
+            override fun onRmsChanged(rmsdB: Float) {}
+
+            override fun onBufferReceived(buffer: ByteArray?) {}
+
+            override fun onEndOfSpeech() {
+                Log.d("VoiceInput", "speech ended")
+            }
+
+            override fun onError(error: Int) {
+                Log.d("VoiceInput", "speech error: $error")
+
+                if (shouldRunAfterVoiceStop && voiceGoalText.isNotBlank()) {
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+                        finishVoiceInputAndRun(voiceGoalText)
+                    }
+                } else {
+                    resetVoiceInput()
+                    Toast.makeText(
+                        this@ScreenOverlayService,
+                        "I couldn't hear that. Please try again.",
+                        Toast.LENGTH_SHORT
+                    ).show()
+                }
+            }
+
+            override fun onResults(results: Bundle?) {
+                val matches = results?.getStringArrayList(SpeechRecognizer.RESULTS_RECOGNITION)
+                val finalText = matches?.firstOrNull().orEmpty()
+
+                Log.d("VoiceInput", "voice result: $finalText")
+
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+                    finishVoiceInputAndRun(finalText.ifBlank { voiceGoalText })
+                }
+            }
+
+            override fun onPartialResults(partialResults: Bundle?) {
+                val matches = partialResults?.getStringArrayList(SpeechRecognizer.RESULTS_RECOGNITION)
+                val partial = matches?.firstOrNull().orEmpty()
+
+                if (partial.isNotBlank()) {
+                    voiceGoalText = partial
+                    Log.d("VoiceInput", "partial voice result: $voiceGoalText")
+                }
+            }
+
+            override fun onEvent(eventType: Int, params: Bundle?) {}
+        })
+
+        val intent = Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH).apply {
+            putExtra(
+                RecognizerIntent.EXTRA_LANGUAGE_MODEL,
+                RecognizerIntent.LANGUAGE_MODEL_FREE_FORM
+            )
+            putExtra(RecognizerIntent.EXTRA_LANGUAGE, Locale.getDefault())
+            putExtra(RecognizerIntent.EXTRA_PARTIAL_RESULTS, true)
+            putExtra(RecognizerIntent.EXTRA_MAX_RESULTS, 1)
+        }
+
+        speechRecognizer?.startListening(intent)
+    }
+
+    private fun stopVoiceInputAndRun() {
+        shouldRunAfterVoiceStop = true
+        isListening = false
+
+        setBubbleIcon(R.drawable.ic_visa)
+
+        speechRecognizer?.stopListening()
+    }
+
+    @RequiresApi(Build.VERSION_CODES.R)
+    private fun finishVoiceInputAndRun(goal: String) {
+        val trimmedGoal = goal.trim()
+
+        resetVoiceInput()
+
+        if (trimmedGoal.isBlank()) {
+            Toast.makeText(this, "I couldn't hear your goal.", Toast.LENGTH_SHORT).show()
+            return
+        }
+
+        Log.d("VoiceInput", "final voice goal: $trimmedGoal")
+
+        // show what the assistant heard
+        showMessage(message="Heard: $trimmedGoal", showButtons=false)
+
+        // wait briefly so the user can check it
+        handler.postDelayed({
+            runAssistantWithGoal(trimmedGoal)
+        }, 1200L)
+    }
+
+    private fun resetVoiceInput() {
+        isListening = false
+        shouldRunAfterVoiceStop = false
+
+        setBubbleIcon(R.drawable.ic_visa)
+
+        speechRecognizer?.destroy()
+        speechRecognizer = null
+    }
+
+    private fun setBubbleIcon(iconResId: Int) {
+        try {
+            val iconView = bubbleView.findViewById<ImageView>(R.id.visaIcon)
+            iconView?.setImageResource(iconResId)
+        } catch (e: Exception) {
+            Log.e("VoiceInput", "Failed to update bubble icon", e)
+        }
+    }
+
+
+
+    @RequiresApi(Build.VERSION_CODES.R)
+    private fun showGoalDialog()  {
 
         val themedContext = ContextThemeWrapper(this, R.style.Theme_VisA)
 
@@ -282,17 +465,8 @@ class ScreenOverlayService : Service() {
 
         btnOk.setOnClickListener {
             val goal = editGoal.text.toString().trim()
-
-            if (goal.isEmpty()) {
-                Toast.makeText(this, "Please type your goal first.", Toast.LENGTH_SHORT).show()
-                return@setOnClickListener
-            }
-
-            user.setGoal(goal)
-
             dialog.dismiss()
-
-            receiveNextAction(user.goal)
+            runAssistantWithGoal(goal)
         }
 
         btnSpeaker.setOnClickListener { TTSManager.speak(textDialogMessage.text.toString()) }
@@ -358,7 +532,7 @@ class ScreenOverlayService : Service() {
         }
     }
 
-    private fun showMessage(message: String) {
+    private fun showMessage(message: String, showButtons: Boolean = true) {
 
         val themedContext = ContextThemeWrapper(this, R.style.Theme_VisA)
         removeOverlayView(speechView)
@@ -366,6 +540,9 @@ class ScreenOverlayService : Service() {
 
         val view = LayoutInflater.from(themedContext)
             .inflate(R.layout.view_assistant_speech, null)
+
+        val buttonRow = view.findViewById<LinearLayout>(R.id.suggestionButtonRow)
+        buttonRow.visibility = if (showButtons) View.VISIBLE else View.GONE
 
         val txtMessage = view.findViewById<TextView>(R.id.txtSuggestionMessage)
         val btnDoAction = view.findViewById<TextView>(R.id.btnDoAction)
@@ -562,6 +739,20 @@ class ScreenOverlayService : Service() {
             }
             loadingView = null
         }
+    }
+
+    @RequiresApi(Build.VERSION_CODES.R)
+    private fun runAssistantWithGoal(goal: String) {
+        val trimmedGoal = goal.trim()
+
+        if (trimmedGoal.isEmpty()) {
+            Toast.makeText(this, "Please enter your goal first.", Toast.LENGTH_SHORT).show()
+            return
+        }
+
+        user.setGoal(trimmedGoal)
+
+        receiveNextAction(user.goal)
     }
 
 }

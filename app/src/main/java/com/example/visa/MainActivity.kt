@@ -1,5 +1,7 @@
 package com.example.visa
 
+import android.Manifest
+import android.content.pm.PackageManager
 import android.content.Intent
 import android.os.Bundle
 import android.widget.TextView
@@ -13,6 +15,9 @@ import android.provider.Settings
 import android.net.Uri
 import android.view.View
 import android.widget.ImageView
+import android.widget.Toast
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.core.content.ContextCompat
 import com.example.visa.dataclasses.AssistMode
 import com.example.visa.dataclasses.Assistant
 
@@ -127,8 +132,17 @@ class MainActivity : BaseActivity() {
             return
         }
 
-        startScreenAssistant()
+        // only ask microphone permission when voice mode is enabled
+        if (
+            isVoiceModeEnabled() &&
+            ContextCompat.checkSelfPermission(this, Manifest.permission.RECORD_AUDIO)
+            != PackageManager.PERMISSION_GRANTED
+        ) {
+            requestAudioPermissionLauncher.launch(Manifest.permission.RECORD_AUDIO)
+            return
+        }
 
+        startScreenAssistant()
     }
 
     private fun startScreenAssistant() {
@@ -163,6 +177,24 @@ class MainActivity : BaseActivity() {
     private fun getSavedThemeName(): String {
         val prefs = getSharedPreferences("app_prefs", MODE_PRIVATE)
         return prefs.getString("theme", "default") ?: "default"
+    }
+
+    private val requestAudioPermissionLauncher =
+        registerForActivityResult(ActivityResultContracts.RequestPermission()) { isGranted ->
+            if (isGranted) {
+                startScreenAssistant()
+            } else {
+                Toast.makeText(
+                    this,
+                    "Microphone permission is needed for voice mode.",
+                    Toast.LENGTH_SHORT
+                ).show()
+            }
+        }
+
+    private fun isVoiceModeEnabled(): Boolean {
+        val prefs = getSharedPreferences("app_prefs", MODE_PRIVATE)
+        return prefs.getBoolean("voice_mode", false)
     }
 
 }

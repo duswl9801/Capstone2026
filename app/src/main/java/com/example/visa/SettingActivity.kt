@@ -8,6 +8,7 @@ import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.appcompat.app.AppCompatDelegate
 import androidx.core.os.LocaleListCompat
+import android.widget.Toast
 
 class SettingActivity : BaseActivity() {
 
@@ -62,6 +63,7 @@ class SettingActivity : BaseActivity() {
 
         cardVoiceMode.setOnClickListener {
             // later: open voice mode settings
+            toggleVoiceMode()
         }
 
         cardTheme.setOnClickListener {
@@ -85,6 +87,29 @@ class SettingActivity : BaseActivity() {
             .apply()
 
         recreate()
+    }
+
+    private fun toggleVoiceMode() {
+        val prefs = getSharedPreferences("app_prefs", MODE_PRIVATE)
+        val current = prefs.getBoolean("voice_mode", false)
+
+        val next = !current
+
+        prefs.edit()
+            .putBoolean("voice_mode", next)
+            .apply()
+
+        val message = if (next) {
+            "Voice mode is on."
+        } else {
+            "Text mode is on."
+        }
+
+        android.widget.Toast.makeText(
+            this,
+            message,
+            android.widget.Toast.LENGTH_SHORT
+        ).show()
     }
 
 }
